@@ -6,110 +6,56 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=64G
-#SBATCH --time=12:00:00
-#SBATCH --output=/home/mallote/humann_join_hmp.out
-#SBATCH --error=/home/mallote/humann_join_hmp.err
+#SBATCH --time=2:00:00
+#SBATCH --output=/home/mallote/humann_join_year2.out
+#SBATCH --error=/home/mallote/humann_join_year2.err
 
+#Load modules
 module purge all
-
 module load Anaconda3
 
-source activate /data/bordenstein_lab/pythonenvs/biobakery3
+#Activate biobakery3 environment
+source activate /home/mallote/pythonenvs/biobakery3
 
-#humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --file_name genefamilies
+#Set variables
+project=/data/bordenstein_lab/vmi/vmi_metagenomics/year2/shortread
 
-#humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --file_name pathabundance
+#Merge gene family tables
+humann_join_tables --input ${project}/humann_output --output ${project}/humann_output/year2_genefamilies.tsv --file_name genefamilies
 
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm.tsv --units cpm
+#Merge pathway abundance tables
+humann_join_tables --input ${project}/humann_output --output ${project}/humann_output/year2_pathabundance.tsv --file_name pathabundance
 
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab.tsv --units relab
+#Normalize raw gene table to copies per million
+humann_renorm_table --input ${project}/humann_output/year2_genefamilies.tsv --output ${project}/humann_output/year2_genefamilies_cpm.tsv \
+  --units cpm
 
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm
+#Normalize raw pathway abundance table to relative abundance
+humann_renorm_table --input ${project}/humann_output/year2_pathabundance.tsv --output ${project}/humann_output/year2_pathabundance_relab.tsv \
+  --units relab
 
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab
+#Split into stratified and unstratified normalized raw gene and pathway abundance tables
+humann_split_stratified_table --input ${project}/humann_output/year2_genefamilies_cpm.tsv \
+  --output ${project}/humann_output/year2_genefamilies_cpm
+humann_split_stratified_table --input ${project}/humann_output/year2_pathabundance_relab.tsv \
+  --output ${project}/humann_output/year2_pathabundance_relab
 
-#humann_regroup_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --groups uniref90_ko  --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv
+#Regroup gene family table into KEGG orthologs, normalize, and split into stratified/unstratified tables
+humann_regroup_table --input ${project}/humann_output/year2_genefamilies.tsv --groups uniref90_ko  \
+  --output ${project}/humann_output/year2_genefamilies_ko.tsv
 
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm.tsv --units cpm
+humann_renorm_table --input ${project}/humann_output/year2_genefamilies_ko.tsv \
+  --output ${project}/humann_output/year2_genefamilies_ko_cpm.tsv --units cpm
 
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm
+humann_split_stratified_table --input ${project}/humann_output/year2_genefamilies_ko_cpm.tsv \
+  --output ${project}/humann_output/year2_genefamilies_ko_cpm
 
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko
+#Regroup gene family table into COGs, normalize, and split into stratified/unstratified tables
+humann_regroup_table --input ${project}/humann_output/year2_genefamilies.tsv --groups uniref90_eggnog  \
+  --output ${project}/year2_genefamilies_cog.tsv
 
-#humann_regroup_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --groups uniref90_eggnog  --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv
+humann_renorm_table --input ${project}/humann_output/year2_genefamilies_cog.tsv \
+  --output ${project}/humann_output/year2_genefamilies_cog_cpm.tsv --units cpm
 
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm.tsv --units cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog
-
-#humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --file_name genefamilies
-
-#humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --file_name pathabundance
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm.tsv --units cpm
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab.tsv --units relab
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab
-
-#humann_regroup_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --groups uniref90_ko  --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm.tsv --units cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/gw/humann_output/gw_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/gw/humann_output/gw_genefamilies_ko
-
-#humann_regroup_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --groups uniref90_eggnog  --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm.tsv --units cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/gw/humann_output/gw_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/gw/humann_output/gw_genefamilies_cog
-
-#humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --file_name pathabundance
-
-#humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --file_name pathabundance
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm.tsv --units cpm
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab.tsv --units relab
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_pathabundance_relab
-
-#humann_regroup_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --groups uniref90_ko  --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm.tsv --units cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/humann_output/agp_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/humann_output/agp_genefamilies_ko
-
-#humann_regroup_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies.tsv --groups uniref90_eggnog  --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv
-
-#humann_renorm_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm.tsv --units cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog_cpm
-
-#humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/humann_output/agp_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/humann_output/agp_genefamilies_cog
-
-#mkdir /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-cp /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/humann_output/agp_genefamilies_ko.tsv /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-cp /data/bordenstein_lab/vmi/vmi_metagenomics/gw/humann_output/gw_genefamilies_ko.tsv /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-cp /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_ko.tsv /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-cp /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/humann_output/agp_genefamilies_cog.tsv /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-cp /data/bordenstein_lab/vmi/vmi_metagenomics/gw/humann_output/gw_genefamilies_cog.tsv /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-cp /data/bordenstein_lab/vmi/vmi_metagenomics/validation/hmp/humann/hmp_genefamilies_cog.tsv /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-
-humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined/ --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined/combined_genefamilies_ko.tsv --file_name ko
-humann_join_tables --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined/ --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined_genefamilies_cog.tsv --file_name cog
-
-humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined/combined_genefamilies_ko.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
-humann_split_stratified_table --input /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined/combined_genefamilies_cog.tsv --output /data/bordenstein_lab/vmi/vmi_metagenomics/validation/combined
+humann_split_stratified_table --input ${project}/humann_output/year2_genefamilies_cog_cpm.tsv \
+  --output ${project}/humann_output/year2_genefamilies_cog_cpm
