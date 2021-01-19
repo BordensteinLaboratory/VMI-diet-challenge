@@ -19,8 +19,9 @@ module load Anaconda3
 #Activate virtual environment
 source activate /home/mallote/pythonenvs/run_dbcan
 
-#Set array task variable
-file=$(ls /data/bordenstein_lab/vmi/vmi_metagenomics/year2/shortread/kneaddata/*kneaddata.fastq.gz | sed -n ${SLURM_ARRAY_TASK_ID}p)
+#Set project and array task variable
+project=/data/bordenstein_lab/vmi/vmi_metagenomics/year2/shortread
+file=$(ls ${project}/kneaddata/*kneaddata.fastq.gz | sed -n ${SLURM_ARRAY_TASK_ID}p)
 
 #Create filename variable
 filebase="$(basename -- $file)"
@@ -30,9 +31,9 @@ seqtk seq -a ${file} > ${file}.fa
 
 #Run hmmer-based dbcan
 run_dbcan.py ${file}.fa meta -t hmmer --tf_cpu 11 --db_dir /data/bordenstein_lab/humann_db \
-  --out_dir /data/bordenstein_lab/vmi/vmi_metagenomics/year2/shortread/cazymes/${filebase}
+  --out_dir ${project}/cazymes/${filebase}
 
 #Clean up intermediate files
-rm /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/caz_output/${filebase}/prodigal.gff
-rm /data/bordenstein_lab/vmi/vmi_metagenomics/AGP/caz_output/${filebase}/UniInput
+rm ${project}/cazymes/${filebase}/prodigal.gff
+rm ${project}/cazymes/${filebase}/UniInput
 rm ${file}.fa

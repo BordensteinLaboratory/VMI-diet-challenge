@@ -21,18 +21,20 @@ source activate /home/mallote/pythonenvs/biobakery3
 project=/data/bordenstein_lab/vmi/vmi_metagenomics/year2/shortread
 
 #Merge gene family tables
-humann_join_tables --input ${project}/humann_output --output ${project}/humann_output/year2_genefamilies.tsv --file_name genefamilies
+humann_join_tables --input ${project}/humann_output --output ${project}/humann_output/year2_genefamilies.tsv \
+  --file_name genefamilies
 
 #Merge pathway abundance tables
-humann_join_tables --input ${project}/humann_output --output ${project}/humann_output/year2_pathabundance.tsv --file_name pathabundance
+humann_join_tables --input ${project}/humann_output --output ${project}/humann_output/year2_pathabundance.tsv \
+  --file_name pathabundance
 
 #Normalize raw gene table to copies per million
-humann_renorm_table --input ${project}/humann_output/year2_genefamilies.tsv --output ${project}/humann_output/year2_genefamilies_cpm.tsv \
-  --units cpm
+humann_renorm_table --input ${project}/humann_output/year2_genefamilies.tsv \
+  --output ${project}/humann_output/year2_genefamilies_cpm.tsv --units cpm
 
 #Normalize raw pathway abundance table to relative abundance
-humann_renorm_table --input ${project}/humann_output/year2_pathabundance.tsv --output ${project}/humann_output/year2_pathabundance_relab.tsv \
-  --units relab
+humann_renorm_table --input ${project}/humann_output/year2_pathabundance.tsv \
+  --output ${project}/humann_output/year2_pathabundance_relab.tsv --units relab
 
 #Split into stratified and unstratified normalized raw gene and pathway abundance tables
 humann_split_stratified_table --input ${project}/humann_output/year2_genefamilies_cpm.tsv \
