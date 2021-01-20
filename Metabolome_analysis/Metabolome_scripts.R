@@ -1,5 +1,4 @@
 ###Clustering & Pairwise testing###
-#######PairTest####################
 #＜￣｀ヽ、　　　　　　　／￣＞
 #ゝ、　　＼　／⌒ヽ,ノ 　/´
 #   ゝ、　`（ ( ͡° ͜ʖ ͡°) ／
@@ -11,8 +10,7 @@ library(tidyverse)
 library(pvclust)
 library(adegenet)
 set.seed(36)
-setwd("~/Projects/VMI/VMI/VMI_val/data/clean_data")
-temp <- "plasmaYr2.csv"
+temp <- "file"
 #####UNUSED_FILTERING####
 # df_edit<- df_edit[which (df_edit$Ethnicity == AA),]
 # df_x<- within(df, rm(Ethnicity))
@@ -50,7 +48,6 @@ distframe <- temp$data
 # temp$jitter
 temp$boxplot
 pairwise.t.test(distframe$distance, distframe$groups, pool.sd=F, p.adjust.method = "none")
-
 ####PVCLUST####
 df_t <- as.data.frame(t(df))
 names(df_t) <- lapply(df_t[1, ], as.character)
