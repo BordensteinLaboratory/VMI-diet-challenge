@@ -35,5 +35,5 @@ run_dbcan.py ${file}.fa meta -t hmmer --tf_cpu 11 --db_dir /data/bordenstein_lab
 
 #Clean up intermediate files
 rm ${project}/cazymes/${filebase}/prodigal.gff
-rm ${project}/cazymes/${filebase}/UniInput
+rm ${project}/cazymes/${filebase}/uniInput
 rm ${file}.fa

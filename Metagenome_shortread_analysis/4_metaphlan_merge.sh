@@ -30,3 +30,8 @@ done
 
 #Merge individual file outputs into one OTU-like taxonomy table
 merge_metaphlan_tables.py ${project}/metaphlan/*  > ${project}/metaphlan/year2_merged_abundance_table.txt
+
+#Extract species-level relative abundance table from merged merge_metaphlan_tables
+grep -E "s__|clade" ${project}/metaphlan/year2_merged_abundance_table.txt | sed 's/^.*s__//g' \
+  | cut -f1,3-70 | sed -e 's/clade_name/body_site/g' \
+  > ${project}/metaphlan/year2_merged_abundance_table_species.txt

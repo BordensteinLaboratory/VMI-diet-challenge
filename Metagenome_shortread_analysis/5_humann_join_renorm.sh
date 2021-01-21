@@ -54,7 +54,7 @@ humann_split_stratified_table --input ${project}/humann_output/year2_genefamilie
 
 #Regroup gene family table into COGs, normalize, and split into stratified/unstratified tables
 humann_regroup_table --input ${project}/humann_output/year2_genefamilies.tsv --groups uniref90_eggnog  \
-  --output ${project}/year2_genefamilies_cog.tsv
+  --output ${project}/humann_output/year2_genefamilies_cog.tsv
 
 humann_renorm_table --input ${project}/humann_output/year2_genefamilies_cog.tsv \
   --output ${project}/humann_output/year2_genefamilies_cog_cpm.tsv --units cpm

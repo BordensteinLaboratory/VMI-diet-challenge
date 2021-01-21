@@ -25,7 +25,8 @@ file=$(ls ${project}/kneaddata/*kneaddata.fastq.gz | sed -n ${SLURM_ARRAY_TASK_I
 
 #Use shortbred to search reads against the CARD database
 shortbred_quantify.py --markers /data/bordenstein_lab/humann_db/ShortBRED_CARD_2017_markers.faa --wgs ${file} \
-  --results ${file}_shortbred_results.tsv --threads 8 --usearch /home/mallote/usearch11.0.667_i86linux32
+  --results ${file}_shortbred_results.tsv --threads 8 --usearch /home/mallote/usearch11.0.667_i86linux32 \
+  --tmp ${project}/shortbred
 
 #Move output files to a single directory
 mv ${file}_shortbred_results.tsv ${project}/shortbred
