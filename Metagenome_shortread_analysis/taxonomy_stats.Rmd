@@ -1,0 +1,52 @@
+---
+title: "Cohort 2 Taxonomy"
+author: "Liz Mallott"
+date: "1/21/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview of analysis
+
+This analysis examines if overall community composition differs based on self-reported ethnicity and what specific taxa are differentially abundant. 
+Metaphlan (v3.0.7) was used to profile the taxonomic composition of metagenomes and calculate unweighted and weighted UniFrac distances. 
+
+### Setting up the environment
+
+Load the necessary libraries
+
+```{r libraries, results=FALSE, error=FALSE}
+library(vegan)
+```
+
+### Importing data
+
+Import metadata
+```{r import_meta, error=FALSE}
+```
+Import species-level relative abundance table, transpose, and recalculate relative abundance to sum to 1 instead of 100.
+
+Import UniFrac matrices
+
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
