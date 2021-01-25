@@ -1,5 +1,4 @@
-year2_merged_abundance_table_species.txt
-year2_merged_abundance_uunifrac.tsv
-year2_merged_abundance_wunifrac.tsv
-year2_sample_mapping_metaphlan.tsv
-year2_sample_mapping.tsv
+year2_merged*
+year2_sample*
+nmds*
+.Rhistory
