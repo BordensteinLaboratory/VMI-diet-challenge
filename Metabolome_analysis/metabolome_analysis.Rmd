@@ -17,8 +17,5 @@ The libraries below are required for this analysis.
 library(tidyverse)
 library(vegan)
 library(ggplot2)
-library(cowplot)
-library(glmmTMB)
-library(multcomp)
 ```
 

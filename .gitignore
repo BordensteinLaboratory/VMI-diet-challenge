@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+=======
+year2_merged*
+year2_sample*
+nmds*
+.Rhistory
+>>>>>>> 11432df516f111e73755d06ce9a2ba544f2b16ea
