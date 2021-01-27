@@ -25,6 +25,8 @@ library(cowplot)
 library(car)
 library(multcomp)
 library(ggpubr)
+library(glmmTMB)
+library(fdrtool)
 ```
 
 ### Importing data
@@ -1466,4 +1468,102 @@ ggarrange(oral_div_all, oral_div_before, oral_div_after,
           common.legend = TRUE, legend = "right", align = "hv", 
           labels = c(""))
 dev.off()
+```
+
+### Taxonomic abundance
+
+Generalized linear mixed effects models using a negative binomial distribution were used to assess if self-reported ethnicity or study period is associated with the abundance of individual species.
+
+```{r taxa_models_fecal}
+ethnicity_estimatematrix = mat.or.vec(495,2)
+ethnicity_pvaluematrix = mat.or.vec(495,2)
+studyp_estimatematrix = mat.or.vec(495,2)
+studyp_pvaluematrix = mat.or.vec(495,2)
+
+relab_fecal_filtered = as.data.frame(relab_fecal_filtered)
+
+for(i in 2:496) {
+  variable = relab_fecal_filtered[,i]
+  b = try(lm(variable ~ ethnicity + Study_period, 
+                  data = relab_fecal_filtered))
+  anova = anova(b)
+  ethnicity_estimatematrix[i-1,2] = anova[1,4]
+  ethnicity_pvaluematrix[i-1,2] = anova[1,5]
+  studyp_estimatematrix[i-1,2] = anova[2,4]
+  studyp_pvaluematrix[i-1,2] = anova[2,5]
+  ethnicity_estimatematrix[i-1,1] = names(relab_fecal_filtered)[i]
+  ethnicity_pvaluematrix[i-1,1] = names(relab_fecal_filtered)[i]
+  studyp_estimatematrix[i-1,1] = names(relab_fecal_filtered)[i]
+  studyp_pvaluematrix[i-1,1] = names(relab_fecal_filtered)[i]
+}
+
+
+taxa_ethnicity = bind_cols(as.data.frame(ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(ethnicity_pvaluematrix[,2]))
+write.csv(taxa_ethnicity, "tables/taxa_fecal_ethnicity.csv")
+taxa_ethnicity_nona = filter(taxa_ethnicity, taxa_ethnicity[,3] != "NaN") 
+taxa_ethnicity_nona[,3] = as.numeric(as.character(taxa_ethnicity_nona[,3]))
+taxa_ethnicity_corrected = bind_cols(taxa_ethnicity_nona, 
+                               as.data.frame(fdrtool(taxa_ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(taxa_ethnicity_corrected, "tables/taxa_fecal_ethnicity_corrected.csv")
+
+taxa_studyp = bind_cols(as.data.frame(studyp_estimatematrix[,1:2]), 
+                      as.data.frame(studyp_pvaluematrix[,2]))
+write.csv(taxa_studyp, "tables/taxa_fecal_studyp.csv")
+taxa_studyp_nona = filter(taxa_studyp, taxa_studyp[,3] != "NaN") 
+taxa_studyp_nona[,3] = as.numeric(as.character(taxa_studyp_nona[,3]))
+taxa_studyp_corrected = bind_cols(taxa_studyp_nona, 
+                                as.data.frame(fdrtool(taxa_studyp_nona[,3], 
+                                                      statistic = "pvalue", 
+                                                      plot = F)))
+write.csv(taxa_studyp_corrected, "tables/taxa_fecal_studyp_corrected.csv")
+```
+
+```{r taxa_models_oral}
+ethnicity_estimatematrix = mat.or.vec(495,2)
+ethnicity_pvaluematrix = mat.or.vec(495,2)
+studyp_estimatematrix = mat.or.vec(495,2)
+studyp_pvaluematrix = mat.or.vec(495,2)
+
+relab_oral = as.data.frame(relab_oral)
+
+for(i in 2:496) {
+  variable = relab_oral[,i]
+  b = try(lm(variable ~ ethnicity + Study_period, 
+                  data = relab_oral))
+  anova = anova(b)
+  ethnicity_estimatematrix[i-1,2] = anova[1,4]
+  ethnicity_pvaluematrix[i-1,2] = anova[1,5]
+  studyp_estimatematrix[i-1,2] = anova[2,4]
+  studyp_pvaluematrix[i-1,2] = anova[2,5]
+  ethnicity_estimatematrix[i-1,1] = names(relab_oral)[i]
+  ethnicity_pvaluematrix[i-1,1] = names(relab_oral)[i]
+  studyp_estimatematrix[i-1,1] = names(relab_oral)[i]
+  studyp_pvaluematrix[i-1,1] = names(relab_oral)[i]
+}
+
+
+taxa_ethnicity = bind_cols(as.data.frame(ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(ethnicity_pvaluematrix[,2]))
+write.csv(taxa_ethnicity, "tables/taxa_oral_ethnicity.csv")
+taxa_ethnicity_nona = filter(taxa_ethnicity, taxa_ethnicity[,3] != "NaN") 
+taxa_ethnicity_nona[,3] = as.numeric(as.character(taxa_ethnicity_nona[,3]))
+taxa_ethnicity_corrected = bind_cols(taxa_ethnicity_nona, 
+                               as.data.frame(fdrtool(taxa_ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(taxa_ethnicity_corrected, "tables/taxa_oral_ethnicity_corrected.csv")
+
+taxa_studyp = bind_cols(as.data.frame(studyp_estimatematrix[,1:2]), 
+                      as.data.frame(studyp_pvaluematrix[,2]))
+write.csv(taxa_studyp, "tables/taxa_oral_studyp.csv")
+taxa_studyp_nona = filter(taxa_studyp, taxa_studyp[,3] != "NaN") 
+taxa_studyp_nona[,3] = as.numeric(as.character(taxa_studyp_nona[,3]))
+taxa_studyp_corrected = bind_cols(taxa_studyp_nona, 
+                                as.data.frame(fdrtool(taxa_studyp_nona[,3], 
+                                                      statistic = "pvalue", 
+                                                      plot = F)))
+write.csv(taxa_studyp_corrected, "tables/taxa_oral_studyp_corrected.csv")
 ```
