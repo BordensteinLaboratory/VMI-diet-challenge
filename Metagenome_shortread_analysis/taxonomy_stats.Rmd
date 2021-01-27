@@ -22,6 +22,9 @@ library(tidyverse)
 library(vegan)
 library(ggplot2)
 library(cowplot)
+library(car)
+library(multcomp)
+library(ggpubr)
 ```
 
 ### Importing data
@@ -90,7 +93,7 @@ relab_oral = relab1_t %>% left_join(metadata, by = "file") %>%
 
 ### Calculating beta diversity metrics
 
-UniFrac distances are calculated by a MetaPhlAn helper function. Vegan is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+UniFrac distances are calculated by a MetaPhlAn helper function. Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
 ```{r beta_metrics, error=FALSE}
 brayf = vegdist(relab_fecal_filtered[,2:496], method = "bray")
 jaccf = vegdist(relab_fecal_filtered[,2:496], method = "jaccard")
@@ -1222,5 +1225,245 @@ col2 = plot_grid(uunioa + theme(legend.position = "none"),
 plot = plot_grid(col1, col2, legend1, nrow = 1, ncol = 3, 
           rel_widths = c(1.5, 1.5, 0.75), align = "h", axis = "t")
 plot
+dev.off()
+```
+
+### Alpha Diversity
+
+Alpha diversity was calculated using species-level metaphlan results in vegan (2.5-7). Shannon diversity and Shannon-Weaver evenness (Pielou's evenness) were calculated.
+
+```{r alpha_d}
+shannond_fecal = diversity(relab_fecal_filtered[,2:496], index = "shannon")
+shannond_oral = diversity(relab_oral[,2:496], index = "shannon")
+
+shannone_fecal = shannond_fecal/log(specnumber(relab_fecal_filtered[,2:496]))
+shannone_oral = shannond_oral/log(specnumber(relab_oral[,2:496]))
+
+fecal_diversity = cbind(relab_fecal_filtered[,1], relab_fecal_filtered[,497:520], shannond_fecal, shannone_fecal)
+fecal_diversity$Study_period = as.factor(fecal_diversity$Study_period)
+oral_diversity = cbind(relab_oral[,1], relab_oral[,497:519], shannond_oral, shannone_oral)
+oral_diversity$Study_period = as.factor(oral_diversity$Study_period)
+```
+
+A linear model was used to examine differences between self-reported ethnicities and study period (before/during/after) in diversity. 
+```{r alpha_models_fecal}
+div_fecal = lm(shannond_fecal ~ ethnicity*Study_period, 
+                         data = fecal_diversity)
+summary(div_fecal)
+Anova(div_fecal)
+summary(glht(div_fecal,linfct=mcp(Study_period="Tukey")))
+
+even_fecal = lm(shannone_fecal ~ ethnicity*Study_period, 
+                          data = fecal_diversity)
+summary(even_fecal)
+Anova(even_fecal)
+summary(glht(even_fecal,linfct=mcp(Study_period="Tukey")))
+```
+
+```{r alpha_models_oral}
+div_oral = lm(shannond_oral ~ ethnicity*Study_period, data = oral_diversity)
+summary(div_oral)
+Anova(div_oral)
+
+even_oral = lm(shannone_oral ~ ethnicity*Study_period, data = oral_diversity)
+summary(even_oral)
+Anova(even_oral)
+```
+Shannon diversity and evenness did not vary across self-reported ethnicities or study periods in either fecal or oral samples.
+
+```{r alpha_graphs, echo=FALSE}
+fecal_diversity_before = fecal_diversity %>% 
+  filter(Study_period == "Before")
+oral_diversity_before = oral_diversity %>% 
+  filter(Study_period == "Before")
+fecal_diversity_during = fecal_diversity %>% 
+  filter(Study_period == "During")
+fecal_diversity_after = fecal_diversity %>% 
+  filter(Study_period == "After")
+oral_diversity_after = oral_diversity %>% 
+  filter(Study_period == "After")
+
+fecal_div_all = ggboxplot(fecal_diversity, x = "ethnicity", 
+                  y = "shannond_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_div_all = ggpar(fecal_div_all, legend = "right", 
+                      title = "Fecal samples - All") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+oral_div_all = ggboxplot(oral_diversity, x = "ethnicity", 
+                  y = "shannond_oral", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+oral_div_all = ggpar(oral_div_all, legend = "right", 
+                      title = "Oral samples - All") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_div_before = ggboxplot(fecal_diversity_before, x = "ethnicity", 
+                  y = "shannond_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_div_before = ggpar(fecal_div_before, legend = "right", 
+                      title = "Fecal samples - Before") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+oral_div_before = ggboxplot(oral_diversity_before, x = "ethnicity", 
+                  y = "shannond_oral", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+oral_div_before = ggpar(oral_div_before, legend = "right", 
+                      title = "Oral samples - Before") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_div_during = ggboxplot(fecal_diversity_during, x = "ethnicity", 
+                  y = "shannond_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_div_during = ggpar(fecal_div_during, legend = "right", 
+                      title = "Fecal samples - During") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_div_after = ggboxplot(fecal_diversity_after, x = "ethnicity", 
+                  y = "shannond_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_div_after = ggpar(fecal_div_after, legend = "right", 
+                      title = "Fecal samples - After") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+oral_div_after = ggboxplot(oral_diversity_after, x = "ethnicity", 
+                  y = "shannond_oral", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Diversity") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+oral_div_after = ggpar(oral_div_after, legend = "right", 
+                      title = "Oral samples - After") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_even_all = ggboxplot(fecal_diversity, x = "ethnicity", 
+                  y = "shannone_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_even_all = ggpar(fecal_even_all, legend = "right", 
+                      title = "Fecal samples - All") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+oral_even_all = ggboxplot(oral_diversity, x = "ethnicity", 
+                  y = "shannone_oral", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+oral_even_all = ggpar(oral_even_all, legend = "right", 
+                      title = "Oral samples - All") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_even_before = ggboxplot(fecal_diversity_before, x = "ethnicity", 
+                  y = "shannone_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_even_before = ggpar(fecal_even_before, legend = "right", 
+                      title = "Fecal samples - Before") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+oral_even_before = ggboxplot(oral_diversity_before, x = "ethnicity", 
+                  y = "shannone_oral", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+oral_even_before = ggpar(oral_even_before, legend = "right", 
+                      title = "Oral samples - Before") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_even_during = ggboxplot(fecal_diversity_during, x = "ethnicity", 
+                  y = "shannone_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_even_during = ggpar(fecal_even_during, legend = "right", 
+                      title = "Fecal samples - During") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+fecal_even_after = ggboxplot(fecal_diversity_after, x = "ethnicity", 
+                  y = "shannone_fecal", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+fecal_even_after = ggpar(fecal_even_after, legend = "right", 
+                      title = "Fecal samples - After") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+oral_even_after = ggboxplot(oral_diversity_after, x = "ethnicity", 
+                  y = "shannone_oral", color = "ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Shannon Evenness") + 
+  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
+                                "African_American" = "#f5c4ca"))
+oral_even_after = ggpar(oral_even_after, legend = "right", 
+                      title = "Oral samples - After") + 
+  rremove("xlab") + rremove("x.text") + 
+  rremove("legend.title")
+
+tiff(file="figures/fecal_alpha_diversity.tif", res=150, width=15, height=6, units="in")
+ggarrange(fecal_div_all, fecal_div_before, fecal_div_during, fecal_div_after,
+          fecal_even_all, fecal_even_before, fecal_even_during, 
+          fecal_even_after, ncol = 4, nrow=2, 
+          common.legend = TRUE, legend = "right", align = "hv", 
+          labels = c(""))
+dev.off()
+
+tiff(file="figures/oral_alpha_diversity.tif", res=150, width=12, height=6, units="in")
+ggarrange(oral_div_all, oral_div_before, oral_div_after,
+          oral_even_all, oral_even_before, oral_even_after, 
+          ncol = 3, nrow=2, 
+          common.legend = TRUE, legend = "right", align = "hv", 
+          labels = c(""))
 dev.off()
 ```
