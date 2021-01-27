@@ -1,5 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
 year2_merged*
 year2_sample*
-.Rhistory
 *csv
 *tif
