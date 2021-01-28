@@ -1,0 +1,157 @@
+---
+title: "Cohort 2 Function"
+author: "Liz Mallott"
+date: "1/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Overview of analysis
+This analysis examines if the composition of COGs and MetaCyc reaction pathways differs based on self-reported ethnicity and what specific taxa are differentially abundant. 
+HUMAnN (v3.0.0.alpha.4) was used to profile the functional composition of metagenomes.
+
+## COGs
+
+### Set up the environment
+Load the necessary libraries.
+```{r libraries_genes, results=FALSE, error=FALSE}
+library(tidyverse)
+library(vegan)
+library(ggplot2)
+library(cowplot)
+library(car)
+library(multcomp)
+library(ggpubr)
+library(fdrtool)
+```
+
+### Importing data
+Import metadata
+```{r import_meta_gene, error=FALSE}
+metadata_gene = read_tsv("year2_sample_mapping_genes.tsv")
+```
+
+Import normalized, unstratified gene abundance table and transpose.
+```{r import_gene, error=FALSE}
+gene_table = read_tsv("year2_genefamilies_cog_cpm_unstratified.tsv")
+genes = gene_table %>% gather(file, count, 2:163) %>% 
+  spread(Gene_Family, count)
+```
+
+### Filter samples
+
+Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples.
+
+```{r filter_gene}
+genes_fecal = genes %>% left_join(metadata_gene, by = "file") %>% 
+  filter(source == "fecal") 
+genes_oral = genes %>% left_join(metadata_gene, by = "file") %>% 
+  filter(source == "oral")
+```
+
+### Calculating beta diversity metrics
+Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+```{r beta_metrics_gene, error=FALSE}
+brayf_gene = vegdist(genes_fecal[,2:56005], method = "bray")
+jaccf_gene = vegdist(genes_fecal[,2:56005], method = "jaccard")
+brayo_gene = vegdist(genes_oral[,2:56005], method = "bray")
+jacco_gene = vegdist(genes_oral[,2:56005], method = "jaccard")
+```
+
+### PERMANOVAs - All Samples
+Differences in the COG profiles of the community associated with self-reported ethnicity is assessed using permutational multivariate analysis of variance.
+
+#### Bray-Curtis
+Fecal
+```{r permanova_brayf_gene}
+adonis2(brayf_gene ~ ethnicity, data = genes_fecal, 
+        permutations = 4999)
+```
+
+Oral
+```{r permanova_brayo_gene}
+adonis2(brayo_gene ~ ethnicity, data = genes_oral, 
+        permutations = 4999)
+```
+NMDS visualization of Bray-Curtis dissimilarity with all samples.
+```{r nmds_bray_gene, echo=FALSE, error=FALSE}
+mds_bray_f_gene<-metaMDS(brayf_gene, k=2, trymax=500)
+mds_bray_f_gene_points<-mds_bray_gene_f$points
+mds_bray_f_gene_points2<-merge(x=mds_bray_f_gene_points, 
+                               y = genes_fecal, 
+                                  by.x = "row.names", by.y = "row.names")
+brayf <- ggplot(mds_bray_f_points2, aes(x = MDS1, y = MDS2, 
+                                                 color = ethnicity, 
+                                        shape = Study_period)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_text(size=rel(2)), 
+        axis.title.y=element_text(size=rel(2)),
+        plot.title = element_text(size=rel(3)),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
+                   linetype = ethnicity), 
+               type = "t", level = 0.95) + 
+  ggtitle("COGs - Bray-Curtis - Fecal")
+brayf_gene
+
+mds_bray_o<-metaMDS(brayo, k=2, trymax=500)
+mds_bray_o_points<-mds_bray_o$points
+mds_bray_o_points2<-merge(x=mds_bray_o_points, y = relab_oral, 
+                                  by.x = "row.names", by.y = "row.names")
+brayo <- ggplot(mds_bray_o_points2, aes(x = MDS1, y = MDS2, 
+                                                 color = ethnicity,
+                                        shape = Study_period)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_text(size=rel(2)), 
+        axis.title.y=element_text(size=rel(2)),
+        plot.title = element_text(size=rel(3)),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
+                   linetype = ethnicity), 
+               type = "t", level = 0.95) + 
+  ggtitle("Bray-Curtis - Oral")
+brayo
+```
+
+```{r nmds_save_bray_gene}
+tiff(file = "figures/nmds_plot_taxa_bray.tif", res = 150, width = 18, 
+     height = 7, units = "in")
+legend1 = get_legend(brayf + theme(legend.box.margin = margin(0, 0, 0, 12)))
+col1 = plot_grid(brayf + theme(legend.position = "none"),
+                 nrow = 1, ncol = 1, labels = c('A'), 
+                 label_size = 20)
+col2 = plot_grid(brayo + theme(legend.position = "none"),
+                 nrow = 1, ncol = 1, labels = c('B'), 
+                 label_size = 20) 
+plot = plot_grid(col1, col2, legend1, nrow = 1, ncol = 3, 
+          rel_widths = c(1.5, 1.5, 0.75), align = "h", axis = "t")
+plot
+dev.off()
+```
+#### Jaccard
+Fecal
+```{r permanova_jaccf_gene}
+adonis2(jaccf_gene ~ ethnicity, data = genes_fecal, 
+        permutations = 4999)
+```
+
+Oral
+```{r permanova_jacco_gene}
+adonis2(jacco_gene ~ ethnicity, data = genes_oral, 
+        permutations = 4999)
+```
+
+# Pathway Abundances
+
+# KEGG Orthologs
+

@@ -25,7 +25,6 @@ library(cowplot)
 library(car)
 library(multcomp)
 library(ggpubr)
-library(glmmTMB)
 library(fdrtool)
 ```
 
