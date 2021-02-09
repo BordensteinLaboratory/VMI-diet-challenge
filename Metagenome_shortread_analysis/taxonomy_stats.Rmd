@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview of analysis
 
-This analysis examines if overall community composition differs based on self-reported ethnicity and what specific taxa are differentially abundant. 
+This analysis examines if overall community composition differs based on self-reported Ethnicity and what specific taxa are differentially abundant. 
 MetaPhlAn (v3.0.7) was used to profile the taxonomic composition of metagenomes and calculate unweighted and weighted UniFrac distances. 
 
 ### Setting up the environment
@@ -26,6 +26,7 @@ library(car)
 library(multcomp)
 library(ggpubr)
 library(fdrtool)
+library(gridExtra)
 ```
 
 ### Importing data
@@ -33,9 +34,12 @@ library(fdrtool)
 Import metadata
 ```{r import_meta, error=FALSE}
 metadata = read_tsv("year2_sample_mapping_metaphlan.tsv")
+metadata2 = metadata %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "Black" ~ "Black", 
+                               Ethnicity == "White" ~ "White"))
 ```
 
-Import species-level relative abundance table, transpose, and recalculate relative abundance to sum to 1 instead of 100.
+Import species-level relative abundance table with outliers (30f5, 37f1, and 33f1) removed. Transpose and recalculate relative abundance to sum to 1 instead of 100.
 ```{r import_relab, error=FALSE}
 relab = read_tsv("year2_merged_abundance_table_species.txt")
 relab1 = relab %>% mutate_if(is.numeric, ~./100)
@@ -80,55 +84,57 @@ uuni_fecald = as.dist(
 
 ### Filter samples
 
-Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples.
+Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples. Remove species that don't occur in oral samples. Remove species that don't occur in fecal samples.
 
 ```{r filter}
-relab_fecal = relab1_t %>% left_join(metadata, by = "file") %>% 
+relab_fecal = relab1_t %>% left_join(metadata2, by = "file") %>% 
   filter(source == "fecal") 
 relab_fecal_filtered = relab_fecal %>% 
   mutate(total = rowSums(relab_fecal[,2:496])) %>% 
-  filter(total > 0)
-relab_oral = relab1_t %>% left_join(metadata, by = "file") %>% 
-  filter(source == "oral")
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0)
+relab_oral = relab1_t %>% left_join(metadata2, by = "file") %>% 
+  filter(source == "oral") %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0)
 ```
 
 ### Calculating beta diversity metrics
 
 UniFrac distances are calculated by a MetaPhlAn helper function. Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
 ```{r beta_metrics, error=FALSE}
-brayf = vegdist(relab_fecal_filtered[,2:496], method = "bray")
-jaccf = vegdist(relab_fecal_filtered[,2:496], method = "jaccard")
-brayo = vegdist(relab_oral[,2:496], method = "bray")
-jacco = vegdist(relab_oral[,2:496], method = "jaccard")
+brayf = vegdist(relab_fecal_filtered[,2:294], method = "bray")
+jaccf = vegdist(relab_fecal_filtered[,2:294], method = "jaccard")
+brayo = vegdist(relab_oral[,2:239], method = "bray")
+jacco = vegdist(relab_oral[,2:239], method = "jaccard")
 ```
 
 ### PERMANOVAs - All Samples
-Differences in the taxonomic structure of the community associated with self-reported ethnicity is assessed using permutational multivariate analysis of variance.
+Differences in the taxonomic structure of the community associated with self-reported Ethnicity is assessed using permutational multivariate analysis of variance.
 
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf}
-adonis2(brayf ~ ethnicity, data = relab_fecal_filtered, 
+adonis2(brayf ~ Ethnicity, data = relab_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo}
-adonis2(brayo ~ ethnicity, data = relab_oral, 
+adonis2(brayo ~ Ethnicity, data = relab_oral, 
         permutations = 4999)
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with all samples.
 ```{r nmds_bray, echo=FALSE, error=FALSE}
-mds_bray_f<-metaMDS(brayf, k=2, trymax=500)
+mds_bray_f<-metaMDS(brayf, k=2, trymax=499)
 mds_bray_f_points<-mds_bray_f$points
 mds_bray_f_points2<-merge(x=mds_bray_f_points, y = relab_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 brayf <- ggplot(mds_bray_f_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -136,21 +142,25 @@ brayf <- ggplot(mds_bray_f_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Fecal")
+  ggtitle("Bray-Curtis - Fecal")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.217\nDuring: p < 0.001\nAfter: p = 0.022\nAll: p < 0.001", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 brayf
 
-mds_bray_o<-metaMDS(brayo, k=2, trymax=500)
+mds_bray_o<-metaMDS(brayo, k=2, trymax=499)
 mds_bray_o_points<-mds_bray_o$points
 mds_bray_o_points2<-merge(x=mds_bray_o_points, y = relab_oral, 
                                   by.x = "row.names", by.y = "row.names")
 brayo <- ggplot(mds_bray_o_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -158,10 +168,14 @@ brayo <- ggplot(mds_bray_o_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Oral")
+  ggtitle("Bray-Curtis - Oral") +
+  annotate(geom = "text", 
+           label = "Before: p = 0.109\nAfter: p = 0.019\nAll: p = 0.004", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 brayo
 ```
 
@@ -184,27 +198,27 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf}
-adonis2(jaccf ~ ethnicity, data = relab_fecal_filtered, 
+adonis2(jaccf ~ Ethnicity, data = relab_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco}
-adonis2(jacco ~ ethnicity, data = relab_oral, 
+adonis2(jacco ~ Ethnicity, data = relab_oral, 
         permutations = 4999)
 ```
 
 NMDS visualization of Jaccard similarity with all samples.
 ```{r nmds_jacc, echo=FALSE, error=FALSE}
-mds_jacc_f<-metaMDS(jaccf, k=2, trymax=500, distance = "jaccard")
+mds_jacc_f<-metaMDS(jaccf, k=2, trymax=499, distance = "jaccard")
 mds_jacc_f_points<-mds_jacc_f$points
 mds_jacc_f_points2<-merge(x=mds_jacc_f_points, y = relab_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 jaccf <- ggplot(mds_jacc_f_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -212,21 +226,25 @@ jaccf <- ggplot(mds_jacc_f_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Fecal")
+  ggtitle("Jaccard - Fecal")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.217\nDuring: p < 0.001\nAfter: p = 0.022\nAll: p < 0.001", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 jaccf
 
-mds_jacc_o<-metaMDS(jacco, k=2, trymax=500, distance = "jaccard")
+mds_jacc_o<-metaMDS(jacco, k=2, trymax=499, distance = "jaccard")
 mds_jacc_o_points<-mds_jacc_o$points
 mds_jacc_o_points2<-merge(x=mds_jacc_o_points, y = relab_oral, 
                                   by.x = "row.names", by.y = "row.names")
 jacco <- ggplot(mds_jacc_o_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -234,10 +252,14 @@ jacco <- ggplot(mds_jacc_o_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Oral")
+  ggtitle("Jaccard - Oral")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.109\nAfter: p = 0.019\nAll: p = 0.004", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 jacco
 ```
 
@@ -260,27 +282,27 @@ dev.off()
 #### Weighted UniFrac
 Fecal
 ```{r permanova_wunif}
-adonis2(wuni_fecal ~ ethnicity, data = relab_fecal_filtered, 
+adonis2(wuni_fecal ~ Ethnicity, data = relab_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_wunio}
-adonis2(wuni_oral ~ ethnicity, data = relab_oral, 
+adonis2(wuni_oral ~ Ethnicity, data = relab_oral, 
         permutations = 4999)
 ```
 
 NMDS visualization of weighted Unifrac distances with all samples.
 ```{r nmds_wuni, echo=FALSE, error=FALSE}
-mds_wuni_f<-metaMDS(wuni_fecal, k=2, trymax=500)
+mds_wuni_f<-metaMDS(wuni_fecal, k=2, trymax=499)
 mds_wuni_f_points<-mds_wuni_f$points
 mds_wuni_f_points2<-merge(x=mds_wuni_f_points, y = relab_fecal_filtered, 
                                   by.x = "row.names", by.y = "file")
 wunif <- ggplot(mds_wuni_f_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -288,21 +310,25 @@ wunif <- ggplot(mds_wuni_f_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted Unifrac - Fecal")
+  ggtitle("Weighted Unifrac - Fecal")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.482\nDuring: p =0.012\nAfter: p = 0.065\nAll: p = 0.002", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 wunif
 
-mds_wuni_o<-metaMDS(wuni_oral, k=2, trymax=500)
+mds_wuni_o<-metaMDS(wuni_oral, k=2, trymax=499)
 mds_wuni_o_points<-mds_wuni_o$points
 mds_wuni_o_points2<-merge(x=mds_wuni_o_points, y = relab_oral, 
                                   by.x = "row.names", by.y = "file")
 wunio <- ggplot(mds_wuni_o_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -310,10 +336,14 @@ wunio <- ggplot(mds_wuni_o_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted UniFrac - Oral")
+  ggtitle("Weighted UniFrac - Oral")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.472\nAfter: p = 0.124\nAll: p = 0.182", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 wunio
 ```
 
@@ -336,27 +366,27 @@ dev.off()
 #### Unweighted UniFrac
 Fecal
 ```{r permanova_uunif}
-adonis2(uuni_fecal ~ ethnicity, data = relab_fecal_filtered, 
+adonis2(uuni_fecal ~ Ethnicity, data = relab_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_uunio}
-adonis2(uuni_oral ~ ethnicity, data = relab_oral, 
+adonis2(uuni_oral ~ Ethnicity, data = relab_oral, 
         permutations = 4999)
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with all samples.
 ```{r nmds_uuni, echo=FALSE, error=FALSE}
-mds_uuni_f<-metaMDS(uuni_fecal, k=2, trymax=500)
+mds_uuni_f<-metaMDS(uuni_fecal, k=2, trymax=499)
 mds_uuni_f_points<-mds_uuni_f$points
 mds_uuni_f_points2<-merge(x=mds_uuni_f_points, y = relab_fecal_filtered, 
                                   by.x = "row.names", by.y = "file")
 uunif <- ggplot(mds_uuni_f_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -364,21 +394,25 @@ uunif <- ggplot(mds_uuni_f_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted Unifrac - Fecal")
+  ggtitle("Unweighted Unifrac - Fecal")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.016\nDuring: p < 0.001\nAfter: p = 0.006\nAll: p < 0.001", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 uunif
 
-mds_uuni_o<-metaMDS(uuni_oral, k=2, trymax=500)
+mds_uuni_o<-metaMDS(uuni_oral, k=2, trymax=499)
 mds_uuni_o_points<-mds_uuni_o$points
 mds_uuni_o_points2<-merge(x=mds_uuni_o_points, y = relab_oral, 
                                   by.x = "row.names", by.y = "file")
 uunio <- ggplot(mds_uuni_o_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -386,10 +420,14 @@ uunio <- ggplot(mds_uuni_o_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted UniFrac - Oral")
+  ggtitle("Unweighted UniFrac - Oral")  +
+  annotate(geom = "text", 
+           label = "Before: p = 0.710\nAfter: p = 0.346\nAll: p = 0.187", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)
 uunio
 ```
 
@@ -416,42 +454,42 @@ Filter samples from before the diet intervention and recalculate Bray-Curtis and
 
 ```{r filter_before}
 relab_fecal_filtered_before = relab_fecal_filtered %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 relab_oral_before = relab_oral %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 
-brayfb = vegdist(relab_fecal_filtered_before[,2:496], method = "bray")
-jaccfb = vegdist(relab_fecal_filtered_before[,2:496], method = "jaccard")
-brayob = vegdist(relab_oral_before[,2:496], method = "bray")
-jaccob = vegdist(relab_oral_before[,2:496], method = "jaccard")
+brayfb = vegdist(relab_fecal_filtered_before[,2:294], method = "bray")
+jaccfb = vegdist(relab_fecal_filtered_before[,2:294], method = "jaccard")
+brayob = vegdist(relab_oral_before[,2:239], method = "bray")
+jaccob = vegdist(relab_oral_before[,2:239], method = "jaccard")
 ```
 
 
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayfb}
-adonis2(brayfb ~ ethnicity, data = relab_fecal_filtered_before, 
+adonis2(brayfb ~ Ethnicity, data = relab_fecal_filtered_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayob}
-adonis2(brayob ~ ethnicity, data = relab_oral_before, 
+adonis2(brayob ~ Ethnicity, data = relab_oral_before, 
         permutations = 4999)
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with before samples.
 ```{r nmds_bray_before, echo=FALSE, error=FALSE}
-mds_bray_fb<-metaMDS(brayfb, k=2, trymax=500)
+mds_bray_fb<-metaMDS(brayfb, k=2, trymax=499)
 mds_bray_fb_points<-mds_bray_fb$points
 mds_bray_fb_points2<-merge(x=mds_bray_fb_points, 
                            y = relab_fecal_filtered_before, 
                                   by.x = "row.names", by.y = "row.names")
 brayfb <- ggplot(mds_bray_fb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -459,21 +497,21 @@ brayfb <- ggplot(mds_bray_fb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Fecal")
+  ggtitle("Taxonomy - Bray-Curtis - Fecal")
 brayfb
 
-mds_bray_ob<-metaMDS(brayob, k=2, trymax=500)
+mds_bray_ob<-metaMDS(brayob, k=2, trymax=499)
 mds_bray_ob_points<-mds_bray_ob$points
 mds_bray_ob_points2<-merge(x=mds_bray_ob_points, y = relab_oral_before, 
                                   by.x = "row.names", by.y = "row.names")
 brayob <- ggplot(mds_bray_ob_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -481,10 +519,10 @@ brayob <- ggplot(mds_bray_ob_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Oral")
+  ggtitle("Taxonomy - Bray-Curtis - Oral")
 brayob
 ```
 
@@ -507,28 +545,28 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccfb}
-adonis2(jaccfb ~ ethnicity, data = relab_fecal_filtered_before, 
+adonis2(jaccfb ~ Ethnicity, data = relab_fecal_filtered_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jaccob}
-adonis2(jaccob ~ ethnicity, data = relab_oral_before, 
+adonis2(jaccob ~ Ethnicity, data = relab_oral_before, 
         permutations = 4999)
 ```
 
 NMDS visualization of Jaccard similarity with before samples.
 ```{r nmds_jacc_before, echo=FALSE, error=FALSE}
-mds_jacc_fb<-metaMDS(jaccfb, k=2, trymax=500, distance = "jaccard")
+mds_jacc_fb<-metaMDS(jaccfb, k=2, trymax=499, distance = "jaccard")
 mds_jacc_fb_points<-mds_jacc_fb$points
 mds_jacc_fb_points2<-merge(x=mds_jacc_fb_points, 
                            y = relab_fecal_filtered_before, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfb <- ggplot(mds_jacc_fb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -536,21 +574,21 @@ jaccfb <- ggplot(mds_jacc_fb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Fecal")
+  ggtitle("Taxonomy - Jaccard - Fecal")
 jaccfb
 
-mds_jacc_ob<-metaMDS(jaccob, k=2, trymax=500, distance = "jaccard")
+mds_jacc_ob<-metaMDS(jaccob, k=2, trymax=499, distance = "jaccard")
 mds_jacc_ob_points<-mds_jacc_ob$points
 mds_jacc_ob_points2<-merge(x=mds_jacc_ob_points, y = relab_oral_before, 
                                   by.x = "row.names", by.y = "row.names")
 jaccob <- ggplot(mds_jacc_ob_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -558,10 +596,10 @@ jaccob <- ggplot(mds_jacc_ob_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Oral")
+  ggtitle("Taxonomy - Jaccard - Oral")
 jaccob
 ```
 
@@ -584,28 +622,28 @@ dev.off()
 #### Weighted UniFrac
 Fecal
 ```{r permanova_wunif_before}
-adonis2(wuni_fecalb ~ ethnicity, data = relab_fecal_filtered_before, 
+adonis2(wuni_fecalb ~ Ethnicity, data = relab_fecal_filtered_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_wunio_before}
-adonis2(wuni_oralb ~ ethnicity, data = relab_oral_before, 
+adonis2(wuni_oralb ~ Ethnicity, data = relab_oral_before, 
         permutations = 4999)
 ```
 
 NMDS visualization of weighted Unifrac distances with before samples.
 ```{r nmds_wuni_before, echo=FALSE, error=FALSE}
-mds_wuni_fb<-metaMDS(wuni_fecalb, k=2, trymax=500)
+mds_wuni_fb<-metaMDS(wuni_fecalb, k=2, trymax=499)
 mds_wuni_fb_points<-mds_wuni_fb$points
 mds_wuni_fb_points2<-merge(x=mds_wuni_fb_points, 
                            y = relab_fecal_filtered_before, 
                                   by.x = "row.names", by.y = "file")
 wunifb <- ggplot(mds_wuni_fb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -613,21 +651,21 @@ wunifb <- ggplot(mds_wuni_fb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted Unifrac - Fecal")
+  ggtitle("Taxonomy - Weighted Unifrac - Fecal")
 wunifb
 
-mds_wuni_ob<-metaMDS(wuni_oralb, k=2, trymax=500)
+mds_wuni_ob<-metaMDS(wuni_oralb, k=2, trymax=499)
 mds_wuni_ob_points<-mds_wuni_ob$points
 mds_wuni_ob_points2<-merge(x=mds_wuni_ob_points, y = relab_oral_before, 
                                   by.x = "row.names", by.y = "file")
 wuniob <- ggplot(mds_wuni_ob_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -635,10 +673,10 @@ wuniob <- ggplot(mds_wuni_ob_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted UniFrac - Oral")
+  ggtitle("Taxonomy - Weighted UniFrac - Oral")
 wuniob
 ```
 
@@ -661,28 +699,28 @@ dev.off()
 #### Unweighted UniFrac
 Fecal
 ```{r permanova_uunif_before}
-adonis2(uuni_fecalb ~ ethnicity, data = relab_fecal_filtered_before, 
+adonis2(uuni_fecalb ~ Ethnicity, data = relab_fecal_filtered_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_uunio_before}
-adonis2(uuni_oralb ~ ethnicity, data = relab_oral_before, 
+adonis2(uuni_oralb ~ Ethnicity, data = relab_oral_before, 
         permutations = 4999)
 ```
 
 NMDS visualization of unweighted UniFrac distances with before samples.
 ```{r nmds_uuni_before, echo=FALSE, error=FALSE}
-mds_uuni_fb<-metaMDS(uuni_fecalb, k=2, trymax=500)
+mds_uuni_fb<-metaMDS(uuni_fecalb, k=2, trymax=499)
 mds_uuni_fb_points<-mds_uuni_fb$points
 mds_uuni_fb_points2<-merge(x=mds_uuni_fb_points, 
                            y = relab_fecal_filtered_before, 
                                   by.x = "row.names", by.y = "file")
 uunifb <- ggplot(mds_uuni_fb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -690,21 +728,21 @@ uunifb <- ggplot(mds_uuni_fb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted Unifrac - Fecal")
+  ggtitle("Taxonomy - Unweighted Unifrac - Fecal")
 uunifb
 
-mds_uuni_ob<-metaMDS(uuni_oralb, k=2, trymax=500)
+mds_uuni_ob<-metaMDS(uuni_oralb, k=2, trymax=499)
 mds_uuni_ob_points<-mds_uuni_ob$points
 mds_uuni_ob_points2<-merge(x=mds_uuni_ob_points, y = relab_oral_before, 
                                   by.x = "row.names", by.y = "file")
 uuniob <- ggplot(mds_uuni_ob_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -712,10 +750,10 @@ uuniob <- ggplot(mds_uuni_ob_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted UniFrac - Oral")
+  ggtitle("Taxonomy - Unweighted UniFrac - Oral")
 uuniob
 ```
 
@@ -740,31 +778,31 @@ dev.off()
 Filter samples from during the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_during}
 relab_fecal_filtered_during = relab_fecal_filtered %>% 
-  filter(Study_period == "During")
+  filter(`Study period` == "During")
 
-brayfd = vegdist(relab_fecal_filtered_during[,2:496], method = "bray")
-jaccfd = vegdist(relab_fecal_filtered_during[,2:496], method = "jaccard")
+brayfd = vegdist(relab_fecal_filtered_during[,2:294], method = "bray")
+jaccfd = vegdist(relab_fecal_filtered_during[,2:294], method = "jaccard")
 ```
 
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayfd}
-adonis2(brayfd ~ ethnicity, data = relab_fecal_filtered_during, 
+adonis2(brayfd ~ Ethnicity, data = relab_fecal_filtered_during, 
         permutations = 4999)
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with during samples.
 ```{r nmds_bray_during, echo=FALSE, error=FALSE}
-mds_bray_fd<-metaMDS(brayfd, k=2, trymax=500)
+mds_bray_fd<-metaMDS(brayfd, k=2, trymax=499)
 mds_bray_fd_points<-mds_bray_fd$points
 mds_bray_fd_points2<-merge(x=mds_bray_fd_points, 
                            y = relab_fecal_filtered_during, 
                                   by.x = "row.names", by.y = "row.names")
 brayfd <- ggplot(mds_bray_fd_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -772,10 +810,10 @@ brayfd <- ggplot(mds_bray_fd_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Fecal")
+  ggtitle("Taxonomy - Bray-Curtis - Fecal")
 brayfd
 ```
 
@@ -789,22 +827,22 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccfd}
-adonis2(jaccfd ~ ethnicity, data = relab_fecal_filtered_during, 
+adonis2(jaccfd ~ Ethnicity, data = relab_fecal_filtered_during, 
         permutations = 4999)
 ```
 
 NMDS visualization of Jaccard similarity with during samples.
 ```{r nmds_jacc_during, echo=FALSE, error=FALSE}
-mds_jacc_fd<-metaMDS(jaccfd, k=2, trymax=500, distance = "jaccard")
+mds_jacc_fd<-metaMDS(jaccfd, k=2, trymax=499, distance = "jaccard")
 mds_jacc_fd_points<-mds_jacc_fd$points
 mds_jacc_fd_points2<-merge(x=mds_jacc_fd_points, 
                            y = relab_fecal_filtered_during, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfd <- ggplot(mds_jacc_fd_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -812,10 +850,10 @@ jaccfd <- ggplot(mds_jacc_fd_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Fecal")
+  ggtitle("Taxonomy - Jaccard - Fecal")
 jaccfd
 ```
 
@@ -829,22 +867,22 @@ dev.off()
 #### Weighted UniFrac
 Fecal
 ```{r permanova_wunif_during}
-adonis2(wuni_fecald ~ ethnicity, data = relab_fecal_filtered_during, 
+adonis2(wuni_fecald ~ Ethnicity, data = relab_fecal_filtered_during, 
         permutations = 4999)
 ```
 
 NMDS visualization of weighted Unifrac distances with during samples.
 ```{r nmds_wuni_during, echo=FALSE, error=FALSE}
-mds_wuni_fd<-metaMDS(wuni_fecald, k=2, trymax=500)
+mds_wuni_fd<-metaMDS(wuni_fecald, k=2, trymax=499)
 mds_wuni_fd_points<-mds_wuni_fd$points
 mds_wuni_fd_points2<-merge(x=mds_wuni_fd_points, 
                            y = relab_fecal_filtered_during, 
                                   by.x = "row.names", by.y = "file")
 wunifd <- ggplot(mds_wuni_fd_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -852,10 +890,10 @@ wunifd <- ggplot(mds_wuni_fd_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted Unifrac - Fecal")
+  ggtitle("Taxonomy - Weighted Unifrac - Fecal")
 wunifd
 ```
 
@@ -869,22 +907,22 @@ dev.off()
 #### Unweighted UniFrac
 Fecal
 ```{r permanova_uunif_during}
-adonis2(uuni_fecald ~ ethnicity, data = relab_fecal_filtered_during, 
+adonis2(uuni_fecald ~ Ethnicity, data = relab_fecal_filtered_during, 
         permutations = 4999)
 ```
 
 NMDS visualization of unweighted Unifrac distance with during samples.
 ```{r nmds_uuni_during, echo=FALSE, error=FALSE}
-mds_uuni_fd<-metaMDS(uuni_fecald, k=2, trymax=500)
+mds_uuni_fd<-metaMDS(uuni_fecald, k=2, trymax=499)
 mds_uuni_fd_points<-mds_uuni_fd$points
 mds_uuni_fd_points2<-merge(x=mds_uuni_fd_points, 
                            y = relab_fecal_filtered_during, 
                                   by.x = "row.names", by.y = "file")
 uunifd <- ggplot(mds_uuni_fd_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -892,10 +930,10 @@ uunifd <- ggplot(mds_uuni_fd_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted Unifrac - Fecal")
+  ggtitle("Taxonomy - Unweighted Unifrac - Fecal")
 uunifd
 ```
 
@@ -912,40 +950,40 @@ dev.off()
 Filter after samples and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_after}
 relab_fecal_filtered_after = relab_fecal_filtered %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 relab_oral_after = relab_oral %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 
-brayfa = vegdist(relab_fecal_filtered_after[,2:496], method = "bray")
-jaccfa = vegdist(relab_fecal_filtered_after[,2:496], method = "jaccard")
-brayoa = vegdist(relab_oral_after[,2:496], method = "bray")
-jaccoa = vegdist(relab_oral_after[,2:496], method = "jaccard")
+brayfa = vegdist(relab_fecal_filtered_after[,2:294], method = "bray")
+jaccfa = vegdist(relab_fecal_filtered_after[,2:294], method = "jaccard")
+brayoa = vegdist(relab_oral_after[,2:236], method = "bray")
+jaccoa = vegdist(relab_oral_after[,2:236], method = "jaccard")
 ```
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayfa}
-adonis2(brayfa ~ ethnicity, data = relab_fecal_filtered_after, 
+adonis2(brayfa ~ Ethnicity, data = relab_fecal_filtered_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayoa}
-adonis2(brayoa ~ ethnicity, data = relab_oral_after, 
+adonis2(brayoa ~ Ethnicity, data = relab_oral_after, 
         permutations = 4999)
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with after samples.
 ```{r nmds_bray_after, echo=FALSE, error=FALSE}
-mds_bray_fa<-metaMDS(brayfa, k=2, trymax=500)
+mds_bray_fa<-metaMDS(brayfa, k=2, trymax=499)
 mds_bray_fa_points<-mds_bray_fa$points
 mds_bray_fa_points2<-merge(x=mds_bray_fa_points, 
                            y = relab_fecal_filtered_after, 
                                   by.x = "row.names", by.y = "row.names")
 brayfa <- ggplot(mds_bray_fa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -953,21 +991,21 @@ brayfa <- ggplot(mds_bray_fa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Fecal")
+  ggtitle("Taxonomy - Bray-Curtis - Fecal")
 brayfa
 
-mds_bray_oa<-metaMDS(brayoa, k=2, trymax=500)
+mds_bray_oa<-metaMDS(brayoa, k=2, trymax=499)
 mds_bray_oa_points<-mds_bray_oa$points
 mds_bray_oa_points2<-merge(x=mds_bray_oa_points, y = relab_oral_after, 
                                   by.x = "row.names", by.y = "row.names")
 brayoa <- ggplot(mds_bray_oa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -975,10 +1013,10 @@ brayoa <- ggplot(mds_bray_oa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Bray-Curtis - Oral")
+  ggtitle("Taxonomy - Bray-Curtis - Oral")
 brayoa
 ```
 
@@ -1001,28 +1039,28 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccfa}
-adonis2(jaccfa ~ ethnicity, data = relab_fecal_filtered_after, 
+adonis2(jaccfa ~ Ethnicity, data = relab_fecal_filtered_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jaccoa}
-adonis2(jaccoa ~ ethnicity, data = relab_oral_after, 
+adonis2(jaccoa ~ Ethnicity, data = relab_oral_after, 
         permutations = 4999)
 ```
 
 NMDS visualization of Jaccard similarity with after samples.
 ```{r nmds_jacc_after, echo=FALSE, error=FALSE}
-mds_jacc_fa<-metaMDS(jaccfa, k=2, trymax=500, distance = "jaccard")
+mds_jacc_fa<-metaMDS(jaccfa, k=2, trymax=499, distance = "jaccard")
 mds_jacc_fa_points<-mds_jacc_fa$points
 mds_jacc_fa_points2<-merge(x=mds_jacc_fa_points, 
                            y = relab_fecal_filtered_after, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfa <- ggplot(mds_jacc_fa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1030,21 +1068,21 @@ jaccfa <- ggplot(mds_jacc_fa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Fecal")
+  ggtitle("Taxonomy - Jaccard - Fecal")
 jaccfa
 
-mds_jacc_oa<-metaMDS(jaccoa, k=2, trymax=500, distance = "jaccard")
+mds_jacc_oa<-metaMDS(jaccoa, k=2, trymax=499, distance = "jaccard")
 mds_jacc_oa_points<-mds_jacc_oa$points
 mds_jacc_oa_points2<-merge(x=mds_jacc_oa_points, y = relab_oral_after, 
                                   by.x = "row.names", by.y = "row.names")
 jaccoa <- ggplot(mds_jacc_oa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1052,10 +1090,10 @@ jaccoa <- ggplot(mds_jacc_oa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Jaccard - Oral")
+  ggtitle("Taxonomy - Jaccard - Oral")
 jaccoa
 ```
 
@@ -1078,28 +1116,28 @@ dev.off()
 #### Weighted UniFrac
 Fecal
 ```{r permanova_wunif_after}
-adonis2(wuni_fecala ~ ethnicity, data = relab_fecal_filtered_after, 
+adonis2(wuni_fecala ~ Ethnicity, data = relab_fecal_filtered_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_wunio_after}
-adonis2(wuni_orala ~ ethnicity, data = relab_oral_after, 
+adonis2(wuni_orala ~ Ethnicity, data = relab_oral_after, 
         permutations = 4999)
 ```
 
 NMDS visualization of weighted Unifrac distances with after samples.
 ```{r nmds_wuni_after, echo=FALSE, error=FALSE}
-mds_wuni_fa<-metaMDS(wuni_fecala, k=2, trymax=500)
+mds_wuni_fa<-metaMDS(wuni_fecala, k=2, trymax=499)
 mds_wuni_fa_points<-mds_wuni_fa$points
 mds_wuni_fa_points2<-merge(x=mds_wuni_fa_points, 
                            y = relab_fecal_filtered_after, 
                                   by.x = "row.names", by.y = "file")
 wunifa <- ggplot(mds_wuni_fa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1107,21 +1145,21 @@ wunifa <- ggplot(mds_wuni_fa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted Unifrac - Fecal")
+  ggtitle("Taxonomy - Weighted Unifrac - Fecal")
 wunifa
 
-mds_wuni_oa<-metaMDS(wuni_orala, k=2, trymax=500)
+mds_wuni_oa<-metaMDS(wuni_orala, k=2, trymax=499)
 mds_wuni_oa_points<-mds_wuni_oa$points
 mds_wuni_oa_points2<-merge(x=mds_wuni_oa_points, y = relab_oral_after, 
                                   by.x = "row.names", by.y = "file")
 wunioa <- ggplot(mds_wuni_oa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1129,10 +1167,10 @@ wunioa <- ggplot(mds_wuni_oa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Weighted UniFrac - Oral")
+  ggtitle("Taxonomy - Weighted UniFrac - Oral")
 wunioa
 ```
 
@@ -1155,28 +1193,28 @@ dev.off()
 #### Unweighted UniFrac
 Fecal
 ```{r permanova_uunif_after}
-adonis2(uuni_fecala ~ ethnicity, data = relab_fecal_filtered_after, 
+adonis2(uuni_fecala ~ Ethnicity, data = relab_fecal_filtered_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_uunio_after}
-adonis2(uuni_orala ~ ethnicity, data = relab_oral_after, 
+adonis2(uuni_orala ~ Ethnicity, data = relab_oral_after, 
         permutations = 4999)
 ```
 
 NMDS visualization of unweighted UniFrac distances with after samples.
 ```{r nmds_uuni_after, echo=FALSE, error=FALSE}
-mds_uuni_fa<-metaMDS(uuni_fecala, k=2, trymax=500)
+mds_uuni_fa<-metaMDS(uuni_fecala, k=2, trymax=499)
 mds_uuni_fa_points<-mds_uuni_fa$points
 mds_uuni_fa_points2<-merge(x=mds_uuni_fa_points, 
                            y = relab_fecal_filtered_after, 
                                   by.x = "row.names", by.y = "file")
 uunifa <- ggplot(mds_uuni_fa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1184,21 +1222,21 @@ uunifa <- ggplot(mds_uuni_fa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted Unifrac - Fecal")
+  ggtitle("Taxonomy - Unweighted Unifrac - Fecal")
 uunifa
 
-mds_uuni_oa<-metaMDS(uuni_orala, k=2, trymax=500)
+mds_uuni_oa<-metaMDS(uuni_orala, k=2, trymax=499)
 mds_uuni_oa_points<-mds_uuni_oa$points
 mds_uuni_oa_points2<-merge(x=mds_uuni_oa_points, y = relab_oral_after, 
                                   by.x = "row.names", by.y = "file")
 uunioa <- ggplot(mds_uuni_oa_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1206,10 +1244,10 @@ uunioa <- ggplot(mds_uuni_oa_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
-  ggtitle("Unweighted UniFrac - Oral")
+  ggtitle("Taxonomy - Unweighted UniFrac - Oral")
 uunioa
 ```
 
@@ -1234,39 +1272,39 @@ dev.off()
 Alpha diversity was calculated using species-level metaphlan results in vegan (2.5-7). Shannon diversity and Shannon-Weaver evenness (Pielou's evenness) were calculated.
 
 ```{r alpha_d}
-shannond_fecal = diversity(relab_fecal_filtered[,2:496], index = "shannon")
-shannond_oral = diversity(relab_oral[,2:496], index = "shannon")
+shannond_fecal = diversity(relab_fecal_filtered[,2:294], index = "shannon")
+shannond_oral = diversity(relab_oral[,2:236], index = "shannon")
 
-shannone_fecal = shannond_fecal/log(specnumber(relab_fecal_filtered[,2:496]))
-shannone_oral = shannond_oral/log(specnumber(relab_oral[,2:496]))
+shannone_fecal = shannond_fecal/log(specnumber(relab_fecal_filtered[,2:294]))
+shannone_oral = shannond_oral/log(specnumber(relab_oral[,2:236]))
 
-fecal_diversity = cbind(relab_fecal_filtered[,1], relab_fecal_filtered[,497:520], shannond_fecal, shannone_fecal)
-fecal_diversity$Study_period = as.factor(fecal_diversity$Study_period)
-oral_diversity = cbind(relab_oral[,1], relab_oral[,497:519], shannond_oral, shannone_oral)
-oral_diversity$Study_period = as.factor(oral_diversity$Study_period)
+fecal_diversity = cbind(relab_fecal_filtered[,1], relab_fecal_filtered[,295:317], shannond_fecal, shannone_fecal)
+fecal_diversity$`Study period` = as.factor(fecal_diversity$`Study period`)
+oral_diversity = cbind(relab_oral[,1], relab_oral[,237:262], shannond_oral, shannone_oral)
+oral_diversity$`Study period` = as.factor(oral_diversity$`Study period`)
 ```
 
 A linear model was used to examine differences between self-reported ethnicities and study period (before/during/after) in diversity. 
 ```{r alpha_models_fecal}
-div_fecal = lm(shannond_fecal ~ ethnicity*Study_period, 
+div_fecal = lm(shannond_fecal ~ Ethnicity*`Study period`, 
                          data = fecal_diversity)
 summary(div_fecal)
 Anova(div_fecal)
-summary(glht(div_fecal,linfct=mcp(Study_period="Tukey")))
+summary(glht(div_fecal,linfct=mcp(`Study period` = "Tukey")))
 
-even_fecal = lm(shannone_fecal ~ ethnicity*Study_period, 
+even_fecal = lm(shannone_fecal ~ Ethnicity*`Study period`, 
                           data = fecal_diversity)
 summary(even_fecal)
 Anova(even_fecal)
-summary(glht(even_fecal,linfct=mcp(Study_period="Tukey")))
+summary(glht(even_fecal,linfct=mcp(`Study period`="Tukey")))
 ```
 
 ```{r alpha_models_oral}
-div_oral = lm(shannond_oral ~ ethnicity*Study_period, data = oral_diversity)
+div_oral = lm(shannond_oral ~ Ethnicity*`Study period`, data = oral_diversity)
 summary(div_oral)
 Anova(div_oral)
 
-even_oral = lm(shannone_oral ~ ethnicity*Study_period, data = oral_diversity)
+even_oral = lm(shannone_oral ~ Ethnicity*`Study period`, data = oral_diversity)
 summary(even_oral)
 Anova(even_oral)
 ```
@@ -1274,179 +1312,179 @@ Shannon diversity and evenness did not vary across self-reported ethnicities or 
 
 ```{r alpha_graphs, echo=FALSE}
 fecal_diversity_before = fecal_diversity %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 oral_diversity_before = oral_diversity %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 fecal_diversity_during = fecal_diversity %>% 
-  filter(Study_period == "During")
+  filter(`Study period` == "During")
 fecal_diversity_after = fecal_diversity %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 oral_diversity_after = oral_diversity %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 
-fecal_div_all = ggboxplot(fecal_diversity, x = "ethnicity", 
-                  y = "shannond_fecal", color = "ethnicity", 
+fecal_div_all = ggboxplot(fecal_diversity, x = "Ethnicity", 
+                  y = "shannond_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_div_all = ggpar(fecal_div_all, legend = "right", 
                       title = "Fecal samples - All") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-oral_div_all = ggboxplot(oral_diversity, x = "ethnicity", 
-                  y = "shannond_oral", color = "ethnicity", 
+oral_div_all = ggboxplot(oral_diversity, x = "Ethnicity", 
+                  y = "shannond_oral", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 oral_div_all = ggpar(oral_div_all, legend = "right", 
                       title = "Oral samples - All") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_div_before = ggboxplot(fecal_diversity_before, x = "ethnicity", 
-                  y = "shannond_fecal", color = "ethnicity", 
+fecal_div_before = ggboxplot(fecal_diversity_before, x = "Ethnicity", 
+                  y = "shannond_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_div_before = ggpar(fecal_div_before, legend = "right", 
                       title = "Fecal samples - Before") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-oral_div_before = ggboxplot(oral_diversity_before, x = "ethnicity", 
-                  y = "shannond_oral", color = "ethnicity", 
+oral_div_before = ggboxplot(oral_diversity_before, x = "Ethnicity", 
+                  y = "shannond_oral", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 oral_div_before = ggpar(oral_div_before, legend = "right", 
                       title = "Oral samples - Before") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_div_during = ggboxplot(fecal_diversity_during, x = "ethnicity", 
-                  y = "shannond_fecal", color = "ethnicity", 
+fecal_div_during = ggboxplot(fecal_diversity_during, x = "Ethnicity", 
+                  y = "shannond_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_div_during = ggpar(fecal_div_during, legend = "right", 
                       title = "Fecal samples - During") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_div_after = ggboxplot(fecal_diversity_after, x = "ethnicity", 
-                  y = "shannond_fecal", color = "ethnicity", 
+fecal_div_after = ggboxplot(fecal_diversity_after, x = "Ethnicity", 
+                  y = "shannond_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_div_after = ggpar(fecal_div_after, legend = "right", 
                       title = "Fecal samples - After") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-oral_div_after = ggboxplot(oral_diversity_after, x = "ethnicity", 
-                  y = "shannond_oral", color = "ethnicity", 
+oral_div_after = ggboxplot(oral_diversity_after, x = "Ethnicity", 
+                  y = "shannond_oral", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Diversity") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 oral_div_after = ggpar(oral_div_after, legend = "right", 
                       title = "Oral samples - After") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_even_all = ggboxplot(fecal_diversity, x = "ethnicity", 
-                  y = "shannone_fecal", color = "ethnicity", 
+fecal_even_all = ggboxplot(fecal_diversity, x = "Ethnicity", 
+                  y = "shannone_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_even_all = ggpar(fecal_even_all, legend = "right", 
                       title = "Fecal samples - All") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-oral_even_all = ggboxplot(oral_diversity, x = "ethnicity", 
-                  y = "shannone_oral", color = "ethnicity", 
+oral_even_all = ggboxplot(oral_diversity, x = "Ethnicity", 
+                  y = "shannone_oral", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 oral_even_all = ggpar(oral_even_all, legend = "right", 
                       title = "Oral samples - All") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_even_before = ggboxplot(fecal_diversity_before, x = "ethnicity", 
-                  y = "shannone_fecal", color = "ethnicity", 
+fecal_even_before = ggboxplot(fecal_diversity_before, x = "Ethnicity", 
+                  y = "shannone_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_even_before = ggpar(fecal_even_before, legend = "right", 
                       title = "Fecal samples - Before") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-oral_even_before = ggboxplot(oral_diversity_before, x = "ethnicity", 
-                  y = "shannone_oral", color = "ethnicity", 
+oral_even_before = ggboxplot(oral_diversity_before, x = "Ethnicity", 
+                  y = "shannone_oral", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 oral_even_before = ggpar(oral_even_before, legend = "right", 
                       title = "Oral samples - Before") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_even_during = ggboxplot(fecal_diversity_during, x = "ethnicity", 
-                  y = "shannone_fecal", color = "ethnicity", 
+fecal_even_during = ggboxplot(fecal_diversity_during, x = "Ethnicity", 
+                  y = "shannone_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_even_during = ggpar(fecal_even_during, legend = "right", 
                       title = "Fecal samples - During") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-fecal_even_after = ggboxplot(fecal_diversity_after, x = "ethnicity", 
-                  y = "shannone_fecal", color = "ethnicity", 
+fecal_even_after = ggboxplot(fecal_diversity_after, x = "Ethnicity", 
+                  y = "shannone_fecal", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 fecal_even_after = ggpar(fecal_even_after, legend = "right", 
                       title = "Fecal samples - After") + 
   rremove("xlab") + rremove("x.text") + 
   rremove("legend.title")
 
-oral_even_after = ggboxplot(oral_diversity_after, x = "ethnicity", 
-                  y = "shannone_oral", color = "ethnicity", 
+oral_even_after = ggboxplot(oral_diversity_after, x = "Ethnicity", 
+                  y = "shannone_oral", color = "Ethnicity", 
                   add = "jitter", 
                   add.params = list(fill = "white"), 
                   ylab = "Shannon Evenness") + 
-  scale_color_manual(values = c("Caucasian" = "#87ceeb", 
-                                "African_American" = "#f5c4ca"))
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
 oral_even_after = ggpar(oral_even_after, legend = "right", 
                       title = "Oral samples - After") + 
   rremove("xlab") + rremove("x.text") + 
@@ -1471,42 +1509,42 @@ dev.off()
 
 ### Taxonomic abundance
 
-Generalized linear mixed effects models using a negative binomial distribution were used to assess if self-reported ethnicity or study period is associated with the abundance of individual species.
+Generalized linear mixed effects models using a negative binomial distribution were used to assess if self-reported Ethnicity or study period is associated with the abundance of individual species.
 
 ```{r taxa_models_fecal}
-ethnicity_estimatematrix = mat.or.vec(495,2)
-ethnicity_pvaluematrix = mat.or.vec(495,2)
-studyp_estimatematrix = mat.or.vec(495,2)
-studyp_pvaluematrix = mat.or.vec(495,2)
+Ethnicity_estimatematrix = mat.or.vec(295,2)
+Ethnicity_pvaluematrix = mat.or.vec(295,2)
+studyp_estimatematrix = mat.or.vec(295,2)
+studyp_pvaluematrix = mat.or.vec(295,2)
 
 relab_fecal_filtered = as.data.frame(relab_fecal_filtered)
 
-for(i in 2:496) {
+for(i in 2:294) {
   variable = relab_fecal_filtered[,i]
-  b = try(lm(variable ~ ethnicity + Study_period, 
+  b = try(lm(variable ~ Ethnicity + `Study period`, 
                   data = relab_fecal_filtered))
   anova = anova(b)
-  ethnicity_estimatematrix[i-1,2] = anova[1,4]
-  ethnicity_pvaluematrix[i-1,2] = anova[1,5]
+  Ethnicity_estimatematrix[i-1,2] = anova[1,4]
+  Ethnicity_pvaluematrix[i-1,2] = anova[1,5]
   studyp_estimatematrix[i-1,2] = anova[2,4]
   studyp_pvaluematrix[i-1,2] = anova[2,5]
-  ethnicity_estimatematrix[i-1,1] = names(relab_fecal_filtered)[i]
-  ethnicity_pvaluematrix[i-1,1] = names(relab_fecal_filtered)[i]
+  Ethnicity_estimatematrix[i-1,1] = names(relab_fecal_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_fecal_filtered)[i]
   studyp_estimatematrix[i-1,1] = names(relab_fecal_filtered)[i]
   studyp_pvaluematrix[i-1,1] = names(relab_fecal_filtered)[i]
 }
 
 
-taxa_ethnicity = bind_cols(as.data.frame(ethnicity_estimatematrix[,1:2]), 
-                     as.data.frame(ethnicity_pvaluematrix[,2]))
-write.csv(taxa_ethnicity, "tables/taxa_fecal_ethnicity.csv")
-taxa_ethnicity_nona = filter(taxa_ethnicity, taxa_ethnicity[,3] != "NaN") 
-taxa_ethnicity_nona[,3] = as.numeric(as.character(taxa_ethnicity_nona[,3]))
-taxa_ethnicity_corrected = bind_cols(taxa_ethnicity_nona, 
-                               as.data.frame(fdrtool(taxa_ethnicity_nona[,3], 
+taxa_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]))
+write.csv(taxa_Ethnicity, "tables/taxa_fecal_Ethnicity.csv")
+taxa_Ethnicity_nona = filter(taxa_Ethnicity, taxa_Ethnicity[,3] != "NaN") 
+taxa_Ethnicity_nona[,3] = as.numeric(as.character(taxa_Ethnicity_nona[,3]))
+taxa_Ethnicity_corrected = bind_cols(taxa_Ethnicity_nona, 
+                               as.data.frame(fdrtool(taxa_Ethnicity_nona[,3], 
                                                      statistic = "pvalue", 
                                                      plot = F)))
-write.csv(taxa_ethnicity_corrected, "tables/taxa_fecal_ethnicity_corrected.csv")
+write.csv(taxa_Ethnicity_corrected, "tables/taxa_fecal_Ethnicity_corrected.csv")
 
 taxa_studyp = bind_cols(as.data.frame(studyp_estimatematrix[,1:2]), 
                       as.data.frame(studyp_pvaluematrix[,2]))
@@ -1521,39 +1559,39 @@ write.csv(taxa_studyp_corrected, "tables/taxa_fecal_studyp_corrected.csv")
 ```
 
 ```{r taxa_models_oral}
-ethnicity_estimatematrix = mat.or.vec(495,2)
-ethnicity_pvaluematrix = mat.or.vec(495,2)
-studyp_estimatematrix = mat.or.vec(495,2)
-studyp_pvaluematrix = mat.or.vec(495,2)
+Ethnicity_estimatematrix = mat.or.vec(238,2)
+Ethnicity_pvaluematrix = mat.or.vec(238,2)
+studyp_estimatematrix = mat.or.vec(238,2)
+studyp_pvaluematrix = mat.or.vec(238,2)
 
 relab_oral = as.data.frame(relab_oral)
 
-for(i in 2:496) {
+for(i in 2:239) {
   variable = relab_oral[,i]
-  b = try(lm(variable ~ ethnicity + Study_period, 
+  b = try(lm(variable ~ Ethnicity + `Study period`, 
                   data = relab_oral))
   anova = anova(b)
-  ethnicity_estimatematrix[i-1,2] = anova[1,4]
-  ethnicity_pvaluematrix[i-1,2] = anova[1,5]
+  Ethnicity_estimatematrix[i-1,2] = anova[1,4]
+  Ethnicity_pvaluematrix[i-1,2] = anova[1,5]
   studyp_estimatematrix[i-1,2] = anova[2,4]
   studyp_pvaluematrix[i-1,2] = anova[2,5]
-  ethnicity_estimatematrix[i-1,1] = names(relab_oral)[i]
-  ethnicity_pvaluematrix[i-1,1] = names(relab_oral)[i]
+  Ethnicity_estimatematrix[i-1,1] = names(relab_oral)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_oral)[i]
   studyp_estimatematrix[i-1,1] = names(relab_oral)[i]
   studyp_pvaluematrix[i-1,1] = names(relab_oral)[i]
 }
 
 
-taxa_ethnicity = bind_cols(as.data.frame(ethnicity_estimatematrix[,1:2]), 
-                     as.data.frame(ethnicity_pvaluematrix[,2]))
-write.csv(taxa_ethnicity, "tables/taxa_oral_ethnicity.csv")
-taxa_ethnicity_nona = filter(taxa_ethnicity, taxa_ethnicity[,3] != "NaN") 
-taxa_ethnicity_nona[,3] = as.numeric(as.character(taxa_ethnicity_nona[,3]))
-taxa_ethnicity_corrected = bind_cols(taxa_ethnicity_nona, 
-                               as.data.frame(fdrtool(taxa_ethnicity_nona[,3], 
+taxa_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]))
+write.csv(taxa_Ethnicity, "tables/taxa_oral_Ethnicity.csv")
+taxa_Ethnicity_nona = filter(taxa_Ethnicity, taxa_Ethnicity[,3] != "NaN") 
+taxa_Ethnicity_nona[,3] = as.numeric(as.character(taxa_Ethnicity_nona[,3]))
+taxa_Ethnicity_corrected = bind_cols(taxa_Ethnicity_nona, 
+                               as.data.frame(fdrtool(taxa_Ethnicity_nona[,3], 
                                                      statistic = "pvalue", 
                                                      plot = F)))
-write.csv(taxa_ethnicity_corrected, "tables/taxa_oral_ethnicity_corrected.csv")
+write.csv(taxa_Ethnicity_corrected, "tables/taxa_oral_Ethnicity_corrected.csv")
 
 taxa_studyp = bind_cols(as.data.frame(studyp_estimatematrix[,1:2]), 
                       as.data.frame(studyp_pvaluematrix[,2]))
@@ -1565,4 +1603,26 @@ taxa_studyp_corrected = bind_cols(taxa_studyp_nona,
                                                       statistic = "pvalue", 
                                                       plot = F)))
 write.csv(taxa_studyp_corrected, "tables/taxa_oral_studyp_corrected.csv")
+```
+
+Graph all significant associations
+```{r taxa_graphs}
+sig_taxa = read.csv("taxa_abundance_fecal.csv", header = T)
+
+taxa = sig_taxa[,1]
+plot = list()
+for (i in taxa[1:149]) {
+  plot[[i]] = ggboxplot(relab_fecal_filtered, x = "Ethnicity", 
+                  y = i, color = "Ethnicity", 
+                  add = "jitter", 
+                  add.params = list(fill = "white"), 
+                  ylab = "Relative abundance",
+                  title = i) + 
+  scale_color_manual(values = c("White" = "#87ceeb", 
+                                "Black" = "#f5c4ca"))
+}
+tiff(file="figures/sig_taxa_plots.tif", res=150, width=48, height=52, units="in") 
+ggarrange(plotlist = plot, nrow = 13, ncol = 12,
+          common.legend = T)
+dev.off()
 ```
