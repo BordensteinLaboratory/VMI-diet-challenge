@@ -35,8 +35,8 @@ Import metadata
 ```{r import_meta, error=FALSE}
 metadata = read_tsv("year2_sample_mapping_metaphlan.tsv")
 metadata2 = metadata %>% 
-  mutate(Ethnicity = case_when(Ethnicity == "Black" ~ "Black", 
-                               Ethnicity == "White" ~ "White"))
+  mutate(Ethnicity = case_when(Ethnicity == "African_american" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
 ```
 
 Import species-level relative abundance table with outliers (30f5, 37f1, and 33f1) removed. Transpose and recalculate relative abundance to sum to 1 instead of 100.

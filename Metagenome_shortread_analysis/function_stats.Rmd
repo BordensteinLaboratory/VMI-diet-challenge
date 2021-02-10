@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Overview of analysis
-This analysis examines if the composition of COGs and MetaCyc reaction pathways differs based on self-reported ethnicity and what specific taxa are differentially abundant. 
+This analysis examines if the composition of COGs and MetaCyc reaction pathways differs based on self-reported Ethnicity and what specific taxa are differentially abundant. 
 HUMAnN (v3.0.0.alpha.4) was used to profile the functional composition of metagenomes.
 
 ## COGs
@@ -30,7 +30,9 @@ library(fdrtool)
 ### Importing data
 Import metadata
 ```{r import_meta_gene, error=FALSE}
-metadata_gene = read_tsv("year2_sample_mapping_genes.tsv")
+metadata_gene = read_tsv("year2_sample_mapping_genes.tsv") %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
 ```
 
 Import normalized, unstratified gene abundance table with outliers (30f5, 37f1, and 33f1) removed. Transpose.
@@ -50,7 +52,7 @@ genes_fecal = genes %>% left_join(metadata_gene, by = "file") %>%
 genes_fecal_filtered = genes_fecal %>% 
   mutate(total = rowSums(genes_fecal[,2:56005])) %>% 
   filter(total > 0) %>% 
-  select_if(~ !is.numeric(.) || sum(.) != 0)
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
 write_csv(genes_fecal_filtered, "gene_family_cog_cpm_fecal.csv")
 
 genes_oral = genes %>% left_join(metadata_gene, by = "file") %>% 
@@ -58,7 +60,7 @@ genes_oral = genes %>% left_join(metadata_gene, by = "file") %>%
 genes_oral_filtered = genes_oral %>% 
   mutate(total = rowSums(genes_oral[,2:56005])) %>% 
   filter(total > 0) %>% 
-  select_if(~ !is.numeric(.) || sum(.) != 0)
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
 write_csv(genes_oral, "gene_family_cog_cpm_oral.csv")
 ```
 
@@ -72,18 +74,18 @@ jacco_gene = vegdist(genes_oral_filtered[,2:32391], method = "jaccard")
 ```
 
 ### PERMANOVAs - All Samples
-Differences in the COG profiles of the community associated with self-reported ethnicity is assessed using permutational multivariate analysis of variance.
+Differences in the COG profiles of the community associated with self-reported Ethnicity is assessed using permutational multivariate analysis of variance.
 
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf_gene}
-adonis2(brayf_gene ~ ethnicity, data = genes_fecal_filtered, 
+adonis2(brayf_gene ~ Ethnicity, data = genes_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo_gene}
-adonis2(brayo_gene ~ ethnicity, data = genes_oral_filtered, 
+adonis2(brayo_gene ~ Ethnicity, data = genes_oral_filtered, 
         permutations = 4999)
 ```
 NMDS visualization of Bray-Curtis dissimilarity with all samples.
@@ -94,10 +96,10 @@ mds_bray_f_gene_points2<-merge(x=mds_bray_f_gene_points,
                                y = genes_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 brayfg <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -105,8 +107,8 @@ brayfg <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Fecal") +
   annotate(geom = "text", 
@@ -121,10 +123,10 @@ mds_bray_o_gene_points2<-merge(x=mds_bray_o_gene_points,
                                y = genes_oral_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 brayog <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -132,8 +134,8 @@ brayog <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Oral") +
   annotate(geom = "text", 
@@ -161,13 +163,13 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf_gene}
-adonis2(jaccf_gene ~ ethnicity, data = genes_fecal_filtered, 
+adonis2(jaccf_gene ~ Ethnicity, data = genes_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco_gene}
-adonis2(jacco_gene ~ ethnicity, data = genes_oral_filtered, 
+adonis2(jacco_gene ~ Ethnicity, data = genes_oral_filtered, 
         permutations = 4999)
 ```
 
@@ -179,10 +181,10 @@ mds_jacc_f_gene_points2<-merge(x=mds_jacc_f_gene_points,
                                y = genes_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfg <- ggplot(mds_jacc_f_gene_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -190,8 +192,8 @@ jaccfg <- ggplot(mds_jacc_f_gene_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal") +
   annotate(geom = "text", 
@@ -206,10 +208,10 @@ mds_jacc_o_gene_points2<-merge(x=mds_jacc_o_gene_points,
                           y = genes_oral_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 jaccog <- ggplot(mds_jacc_o_gene_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -217,8 +219,8 @@ jaccog <- ggplot(mds_jacc_o_gene_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Oral") +
   annotate(geom = "text", 
@@ -248,9 +250,9 @@ dev.off()
 Filter samples from before the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_gene_before}
 gene_fecal_before = genes_fecal_filtered %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 gene_oral_before = genes_oral_filtered %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 
 brayf_gene_b = vegdist(gene_fecal_before[,2:40168], method = "bray")
 jaccf_gene_b = vegdist(gene_fecal_before[,2:40168], method = "jaccard")
@@ -260,13 +262,13 @@ jacco_gene_b = vegdist(gene_oral_before[,2:32391], method = "jaccard")
 #### Bray-Curtis - Before
 Fecal
 ```{r permanova_brayf_gene_before}
-adonis2(brayf_gene_b ~ ethnicity, data = gene_fecal_before, 
+adonis2(brayf_gene_b ~ Ethnicity, data = gene_fecal_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo_gene}
-adonis2(brayo_gene_b ~ ethnicity, data = gene_oral_before, 
+adonis2(brayo_gene_b ~ Ethnicity, data = gene_oral_before, 
         permutations = 4999)
 ```
 
@@ -278,10 +280,10 @@ mds_bray_f_geneb_points2<-merge(x=mds_bray_f_geneb_points,
                                y = gene_fecal_before, 
                                   by.x = "row.names", by.y = "row.names")
 brayfgb <- ggplot(mds_bray_f_geneb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -289,8 +291,8 @@ brayfgb <- ggplot(mds_bray_f_geneb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Fecal - Before")
 brayfgb
@@ -301,10 +303,10 @@ mds_bray_o_geneb_points2<-merge(x=mds_bray_o_geneb_points,
                                y = gene_oral_before, 
                                   by.x = "row.names", by.y = "row.names")
 brayogb <- ggplot(mds_bray_o_geneb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -312,8 +314,8 @@ brayogb <- ggplot(mds_bray_o_geneb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Oral - Before")
 brayogb
@@ -337,13 +339,13 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf_gene_before}
-adonis2(jaccf_gene_b ~ ethnicity, data = gene_fecal_before, 
+adonis2(jaccf_gene_b ~ Ethnicity, data = gene_fecal_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco_gene_before}
-adonis2(jacco_gene_b ~ ethnicity, data = gene_oral_before, 
+adonis2(jacco_gene_b ~ Ethnicity, data = gene_oral_before, 
         permutations = 4999)
 ```
 
@@ -355,10 +357,10 @@ mds_jacc_f_geneb_points2<-merge(x=mds_jacc_f_geneb_points,
                                y = gene_fecal_before, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfgb <- ggplot(mds_jacc_f_geneb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -366,8 +368,8 @@ jaccfgb <- ggplot(mds_jacc_f_geneb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal - Before")
 jaccfgb
@@ -378,10 +380,10 @@ mds_jacc_o_geneb_points2<-merge(x=mds_jacc_o_geneb_points,
                           y = gene_oral_before, 
                                   by.x = "row.names", by.y = "row.names")
 jaccogb <- ggplot(mds_jacc_o_geneb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -389,8 +391,8 @@ jaccogb <- ggplot(mds_jacc_o_geneb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Oral - Before")
 jaccogb
@@ -415,7 +417,7 @@ dev.off()
 Filter samples from during the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_gene_during}
 gene_fecal_during = genes_fecal_filtered %>% 
-  filter(Study_period == "During")
+  filter(`Study period` == "During")
 
 brayf_gene_d = vegdist(gene_fecal_during[,2:40168], method = "bray")
 jaccf_gene_d = vegdist(gene_fecal_during[,2:40168], method = "jaccard")
@@ -423,7 +425,7 @@ jaccf_gene_d = vegdist(gene_fecal_during[,2:40168], method = "jaccard")
 #### Bray-Curtis - During
 Fecal
 ```{r permanova_brayf_gene_during}
-adonis2(brayf_gene_d ~ ethnicity, data = gene_fecal_during, 
+adonis2(brayf_gene_d ~ Ethnicity, data = gene_fecal_during, 
         permutations = 4999)
 ```
 
@@ -435,10 +437,10 @@ mds_bray_f_gened_points2<-merge(x=mds_bray_f_gened_points,
                                y = gene_fecal_during, 
                                   by.x = "row.names", by.y = "row.names")
 brayfgd <- ggplot(mds_bray_f_gened_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -446,8 +448,8 @@ brayfgd <- ggplot(mds_bray_f_gened_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Fecal - During")
 brayfgd
@@ -462,7 +464,7 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf_gene_during}
-adonis2(jaccf_gene_d ~ ethnicity, data = gene_fecal_during, 
+adonis2(jaccf_gene_d ~ Ethnicity, data = gene_fecal_during, 
         permutations = 4999)
 ```
 
@@ -474,10 +476,10 @@ mds_jacc_f_gened_points2<-merge(x=mds_jacc_f_gened_points,
                                y = gene_fecal_during, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfgd <- ggplot(mds_jacc_f_gened_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -485,8 +487,8 @@ jaccfgd <- ggplot(mds_jacc_f_gened_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal - During")
 jaccfgd
@@ -503,9 +505,9 @@ dev.off()
 Filter samples from after the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_gene_before}
 gene_fecal_after = genes_fecal_filtered %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 gene_oral_after = genes_oral_filtered %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 
 brayf_gene_a = vegdist(gene_fecal_after[,2:40168], method = "bray")
 jaccf_gene_a = vegdist(gene_fecal_after[,2:40168], method = "jaccard")
@@ -515,13 +517,13 @@ jacco_gene_a = vegdist(gene_oral_after[,2:32391], method = "jaccard")
 #### Bray-Curtis - After
 Fecal
 ```{r permanova_brayf_gene_after}
-adonis2(brayf_gene_a ~ ethnicity, data = gene_fecal_after, 
+adonis2(brayf_gene_a ~ Ethnicity, data = gene_fecal_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo_gene_after}
-adonis2(brayo_gene_a ~ ethnicity, data = gene_oral_after, 
+adonis2(brayo_gene_a ~ Ethnicity, data = gene_oral_after, 
         permutations = 4999)
 ```
 
@@ -533,10 +535,10 @@ mds_bray_f_genea_points2<-merge(x=mds_bray_f_genea_points,
                                y = gene_fecal_after, 
                                   by.x = "row.names", by.y = "row.names")
 brayfga <- ggplot(mds_bray_f_genea_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -544,8 +546,8 @@ brayfga <- ggplot(mds_bray_f_genea_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Fecal - After")
 brayfga
@@ -556,10 +558,10 @@ mds_bray_o_genea_points2<-merge(x=mds_bray_o_genea_points,
                                y = gene_oral_after, 
                                   by.x = "row.names", by.y = "row.names")
 brayoga <- ggplot(mds_bray_o_genea_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -567,8 +569,8 @@ brayoga <- ggplot(mds_bray_o_genea_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Oral - After")
 brayoga
@@ -592,13 +594,13 @@ dev.off()
 #### Jaccard - After
 Fecal
 ```{r permanova_jaccf_gene_after}
-adonis2(jaccf_gene_a ~ ethnicity, data = gene_fecal_after, 
+adonis2(jaccf_gene_a ~ Ethnicity, data = gene_fecal_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco_gene_after}
-adonis2(jacco_gene_a ~ ethnicity, data = gene_oral_after, 
+adonis2(jacco_gene_a ~ Ethnicity, data = gene_oral_after, 
         permutations = 4999)
 ```
 
@@ -610,10 +612,10 @@ mds_jacc_f_genea_points2<-merge(x=mds_jacc_f_genea_points,
                                y = gene_fecal_after, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfga <- ggplot(mds_jacc_f_genea_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -621,8 +623,8 @@ jaccfga <- ggplot(mds_jacc_f_genea_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal - After")
 jaccfga
@@ -633,10 +635,10 @@ mds_jacc_o_genea_points2<-merge(x=mds_jacc_o_genea_points,
                           y = gene_oral_after, 
                                   by.x = "row.names", by.y = "row.names")
 jaccoga <- ggplot(mds_jacc_o_genea_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -644,8 +646,8 @@ jaccoga <- ggplot(mds_jacc_o_genea_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Oral - After")
 jaccoga
@@ -685,7 +687,9 @@ library(fdrtool)
 ### Importing data
 Import metadata
 ```{r import_meta_path, error=FALSE}
-metadata_path = read_tsv("year2_sample_mapping_pathways.tsv")
+metadata_path = read_tsv("year2_sample_mapping_pathways.tsv") %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
 ```
 
 Import normalized, unstratified gene abundance table with outliers (30f5, 37f1, and 33f1) removed. Transpose.
@@ -727,18 +731,18 @@ jacco_path = vegdist(paths_oral_filtered[,2:348], method = "jaccard")
 ```
 
 ### PERMANOVAs - All Samples
-Differences in the pathway abundance profiles of the community associated with self-reported ethnicity is assessed using permutational multivariate analysis of variance.
+Differences in the pathway abundance profiles of the community associated with self-reported Ethnicity is assessed using permutational multivariate analysis of variance.
 
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf_path}
-adonis2(brayf_path ~ ethnicity, data = paths_fecal_filtered, 
+adonis2(brayf_path ~ Ethnicity, data = paths_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo_path}
-adonis2(brayo_path ~ ethnicity, data = paths_oral_filtered, 
+adonis2(brayo_path ~ Ethnicity, data = paths_oral_filtered, 
         permutations = 4999)
 ```
 NMDS visualization of Bray-Curtis dissimilarity with all samples.
@@ -749,10 +753,10 @@ mds_bray_f_path_points2<-merge(x=mds_bray_f_path_points,
                                y = paths_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 brayfp <- ggplot(mds_bray_f_path_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -760,8 +764,8 @@ brayfp <- ggplot(mds_bray_f_path_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Fecal")  +
   annotate(geom = "text", 
@@ -776,10 +780,10 @@ mds_bray_o_path_points2<-merge(x=mds_bray_o_path_points,
                                y = paths_oral_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 brayop <- ggplot(mds_bray_o_path_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -787,8 +791,8 @@ brayop <- ggplot(mds_bray_o_path_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Oral")  +
   annotate(geom = "text", 
@@ -816,13 +820,13 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf_path}
-adonis2(jaccf_path ~ ethnicity, data = paths_fecal_filtered, 
+adonis2(jaccf_path ~ Ethnicity, data = paths_fecal_filtered, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco_path}
-adonis2(jacco_path ~ ethnicity, data = paths_oral_filtered, 
+adonis2(jacco_path ~ Ethnicity, data = paths_oral_filtered, 
         permutations = 4999)
 ```
 
@@ -834,10 +838,10 @@ mds_jacc_f_path_points2<-merge(x=mds_jacc_f_path_points,
                                y = paths_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfp <- ggplot(mds_jacc_f_path_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -845,8 +849,8 @@ jaccfp <- ggplot(mds_jacc_f_path_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Jaccard - Fecal") +
   annotate(geom = "text", 
@@ -861,10 +865,10 @@ mds_jacc_o_path_points2<-merge(x=mds_jacc_o_path_points,
                           y = paths_oral_filtered, 
                                   by.x = "row.names", by.y = "row.names")
 jaccop <- ggplot(mds_jacc_o_path_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -872,8 +876,8 @@ jaccop <- ggplot(mds_jacc_o_path_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Jaccard - Oral") +
   annotate(geom = "text", 
@@ -904,9 +908,9 @@ dev.off()
 Filter samples from before the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_path_before}
 path_fecal_before = paths_fecal_filtered %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 path_oral_before = paths_oral_filtered %>% 
-  filter(Study_period == "Before")
+  filter(`Study period` == "Before")
 
 brayf_path_b = vegdist(path_fecal_before[,2:425], method = "bray")
 jaccf_path_b = vegdist(path_fecal_before[,2:425], method = "jaccard")
@@ -916,13 +920,13 @@ jacco_path_b = vegdist(path_oral_before[,2:348], method = "jaccard")
 #### Bray-Curtis - Before
 Fecal
 ```{r permanova_brayf_path_before}
-adonis2(brayf_path_b ~ ethnicity, data = path_fecal_before, 
+adonis2(brayf_path_b ~ Ethnicity, data = path_fecal_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo_path}
-adonis2(brayo_path_b ~ ethnicity, data = path_oral_before, 
+adonis2(brayo_path_b ~ Ethnicity, data = path_oral_before, 
         permutations = 4999)
 ```
 
@@ -934,10 +938,10 @@ mds_bray_f_pathb_points2<-merge(x=mds_bray_f_pathb_points,
                                y = path_fecal_before, 
                                   by.x = "row.names", by.y = "row.names")
 brayfpb <- ggplot(mds_bray_f_pathb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -945,8 +949,8 @@ brayfpb <- ggplot(mds_bray_f_pathb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Fecal - Before")
 brayfpb
@@ -957,10 +961,10 @@ mds_bray_o_pathb_points2<-merge(x=mds_bray_o_pathb_points,
                                y = path_oral_before, 
                                   by.x = "row.names", by.y = "row.names")
 brayopb <- ggplot(mds_bray_o_pathb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -968,8 +972,8 @@ brayopb <- ggplot(mds_bray_o_pathb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Oral - Before")
 brayopb
@@ -993,13 +997,13 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf_path_before}
-adonis2(jaccf_path_b ~ ethnicity, data = path_fecal_before, 
+adonis2(jaccf_path_b ~ Ethnicity, data = path_fecal_before, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco_path_before}
-adonis2(jacco_path_b ~ ethnicity, data = path_oral_before, 
+adonis2(jacco_path_b ~ Ethnicity, data = path_oral_before, 
         permutations = 4999)
 ```
 
@@ -1011,10 +1015,10 @@ mds_jacc_f_pathb_points2<-merge(x=mds_jacc_f_pathb_points,
                                y = path_fecal_before, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfpb <- ggplot(mds_jacc_f_pathb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1022,8 +1026,8 @@ jaccfpb <- ggplot(mds_jacc_f_pathb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Jaccard - Fecal - Before")
 jaccfpb
@@ -1034,10 +1038,10 @@ mds_jacc_o_pathb_points2<-merge(x=mds_jacc_o_pathb_points,
                           y = path_oral_before, 
                                   by.x = "row.names", by.y = "row.names")
 jaccopb <- ggplot(mds_jacc_o_pathb_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1045,8 +1049,8 @@ jaccopb <- ggplot(mds_jacc_o_pathb_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Jaccard - Oral - Before")
 jaccopb
@@ -1071,7 +1075,7 @@ dev.off()
 Filter samples from during the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_path_during}
 path_fecal_during = paths_fecal_filtered %>% 
-  filter(Study_period == "During")
+  filter(`Study period` == "During")
 
 brayf_path_d = vegdist(path_fecal_during[,2:425], method = "bray")
 jaccf_path_d = vegdist(path_fecal_during[,2:425], method = "jaccard")
@@ -1079,7 +1083,7 @@ jaccf_path_d = vegdist(path_fecal_during[,2:425], method = "jaccard")
 #### Bray-Curtis - During
 Fecal
 ```{r permanova_brayf_path_during}
-adonis2(brayf_path_d ~ ethnicity, data = path_fecal_during, 
+adonis2(brayf_path_d ~ Ethnicity, data = path_fecal_during, 
         permutations = 4999)
 ```
 
@@ -1091,10 +1095,10 @@ mds_bray_f_pathd_points2<-merge(x=mds_bray_f_pathd_points,
                                y = path_fecal_during, 
                                   by.x = "row.names", by.y = "row.names")
 brayfpd <- ggplot(mds_bray_f_pathd_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1102,8 +1106,8 @@ brayfpd <- ggplot(mds_bray_f_pathd_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Fecal - During")
 brayfpd
@@ -1118,7 +1122,7 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf_path_during}
-adonis2(jaccf_path_d ~ ethnicity, data = path_fecal_during, 
+adonis2(jaccf_path_d ~ Ethnicity, data = path_fecal_during, 
         permutations = 4999)
 ```
 
@@ -1130,10 +1134,10 @@ mds_jacc_f_pathd_points2<-merge(x=mds_jacc_f_pathd_points,
                                y = path_fecal_during, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfpd <- ggplot(mds_jacc_f_pathd_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1141,8 +1145,8 @@ jaccfpd <- ggplot(mds_jacc_f_pathd_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal - During")
 jaccfpd
@@ -1159,9 +1163,9 @@ dev.off()
 Filter samples from after the diet intervention and recalculate Bray-Curtis and Jaccard metrics
 ```{r filter_path_before}
 path_fecal_after = paths_fecal_filtered %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 path_oral_after = paths_oral_filtered %>% 
-  filter(Study_period == "After")
+  filter(`Study period` == "After")
 
 brayf_path_a = vegdist(path_fecal_after[,2:425], method = "bray")
 jaccf_path_a = vegdist(path_fecal_after[,2:425], method = "jaccard")
@@ -1171,13 +1175,13 @@ jacco_path_a = vegdist(path_oral_after[,2:348], method = "jaccard")
 #### Bray-Curtis - After
 Fecal
 ```{r permanova_brayf_path_after}
-adonis2(brayf_path_a ~ ethnicity, data = path_fecal_after, 
+adonis2(brayf_path_a ~ Ethnicity, data = path_fecal_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_brayo_path_after}
-adonis2(brayo_path_a ~ ethnicity, data = path_oral_after, 
+adonis2(brayo_path_a ~ Ethnicity, data = path_oral_after, 
         permutations = 4999)
 ```
 
@@ -1189,10 +1193,10 @@ mds_bray_f_patha_points2<-merge(x=mds_bray_f_patha_points,
                                y = path_fecal_after, 
                                   by.x = "row.names", by.y = "row.names")
 brayfpa <- ggplot(mds_bray_f_patha_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity, 
-                                        shape = Study_period)) +
+                                                 color = Ethnicity, 
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1200,8 +1204,8 @@ brayfpa <- ggplot(mds_bray_f_patha_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Fecal - After")
 brayfpa
@@ -1212,10 +1216,10 @@ mds_bray_o_patha_points2<-merge(x=mds_bray_o_patha_points,
                                y = path_oral_after, 
                                   by.x = "row.names", by.y = "row.names")
 brayopa <- ggplot(mds_bray_o_patha_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1223,8 +1227,8 @@ brayopa <- ggplot(mds_bray_o_patha_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Bray-Curtis - Oral - After")
 brayopa
@@ -1248,13 +1252,13 @@ dev.off()
 #### Jaccard - After
 Fecal
 ```{r permanova_jaccf_path_after}
-adonis2(jaccf_path_a ~ ethnicity, data = path_fecal_after, 
+adonis2(jaccf_path_a ~ Ethnicity, data = path_fecal_after, 
         permutations = 4999)
 ```
 
 Oral
 ```{r permanova_jacco_path_after}
-adonis2(jacco_path_a ~ ethnicity, data = path_oral_after, 
+adonis2(jacco_path_a ~ Ethnicity, data = path_oral_after, 
         permutations = 4999)
 ```
 
@@ -1266,10 +1270,10 @@ mds_jacc_f_patha_points2<-merge(x=mds_jacc_f_patha_points,
                                y = path_fecal_after, 
                                   by.x = "row.names", by.y = "row.names")
 jaccfpa <- ggplot(mds_jacc_f_patha_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1277,8 +1281,8 @@ jaccfpa <- ggplot(mds_jacc_f_patha_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Jaccard - Fecal - After")
 jaccfpa
@@ -1289,10 +1293,10 @@ mds_jacc_o_patha_points2<-merge(x=mds_jacc_o_patha_points,
                           y = path_oral_after, 
                                   by.x = "row.names", by.y = "row.names")
 jaccopa <- ggplot(mds_jacc_o_patha_points2, aes(x = MDS1, y = MDS2, 
-                                                 color = ethnicity,
-                                        shape = Study_period)) +
+                                                 color = Ethnicity,
+                                        shape = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
-    values = c("Caucasian"="#87ceeb","African_American"="#f5c4ca")) +
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
   theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
         legend.key=element_blank()) + 
   theme(axis.title.x=element_text(size=rel(2)), 
@@ -1300,8 +1304,8 @@ jaccopa <- ggplot(mds_jacc_o_patha_points2, aes(x = MDS1, y = MDS2,
         plot.title = element_text(size=rel(3)),
         legend.title = element_text(size=rel(2)),
         legend.text = element_text(size = rel(1.8))) +
-  stat_ellipse(aes(x = MDS1, y = MDS2, group = ethnicity, 
-                   linetype = ethnicity), 
+  stat_ellipse(aes(x = MDS1, y = MDS2, group = Ethnicity, 
+                   linetype = Ethnicity), 
                type = "t", level = 0.95) + 
   ggtitle("MetaCyc - Jaccard - Oral - After")
 jaccopa
