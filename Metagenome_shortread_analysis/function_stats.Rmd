@@ -20,6 +20,7 @@ Load the necessary libraries.
 library(tidyverse)
 library(vegan)
 library(ggplot2)
+library(ggtext)
 library(cowplot)
 library(car)
 library(multcomp)
