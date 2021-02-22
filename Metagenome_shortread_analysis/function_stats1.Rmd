@@ -32,7 +32,7 @@ library(fdrtool)
 ### Importing data
 Import metadata
 ```{r import_meta_gene, error=FALSE}
-metadata_gene = read_tsv("year1_sample_mapping_genes.tsv") %>% 
+metadata_gene = read_tsv("year1_sample_mapping_genes_noout.tsv") %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
 ```
@@ -71,17 +71,17 @@ genes_oral_filtered = read_csv("gene_family_cog_cpm_oral_year1.csv")
 ### Calculating beta diversity metrics
 Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
 ```{r beta_metrics_gene, error=FALSE}
-brayf_gene = vegdist(genes_fecal_filtered[,2:44917], method = "bray")
-jaccf_gene = vegdist(genes_fecal_filtered[,2:44917], method = "jaccard")
+brayf_gene = vegdist(genes_fecal_filtered[,2:42254], method = "bray")
+jaccf_gene = vegdist(genes_fecal_filtered[,2:42254], method = "jaccard")
 brayo_gene = vegdist(genes_oral_filtered[,2:33457], method = "bray")
 jacco_gene = vegdist(genes_oral_filtered[,2:33457], method = "jaccard")
 
 genes_fecal_filtered_black = genes_fecal_filtered %>% filter(Ethnicity == "Black")
 genes_fecal_filtered_white = genes_fecal_filtered %>% filter(Ethnicity == "White")
-brayf_gene_black = vegdist(genes_fecal_filtered_black[,2:44917], method = "bray")
-jaccf_gene_black = vegdist(genes_fecal_filtered_black[,2:44917], method = "jaccard")
-brayf_gene_white = vegdist(genes_fecal_filtered_white[,2:44917], method = "bray")
-jaccf_gene_white = vegdist(genes_fecal_filtered_white[,2:44917], method = "jaccard")
+brayf_gene_black = vegdist(genes_fecal_filtered_black[,2:42254], method = "bray")
+jaccf_gene_black = vegdist(genes_fecal_filtered_black[,2:42254], method = "jaccard")
+brayf_gene_white = vegdist(genes_fecal_filtered_white[,2:42254], method = "bray")
+jaccf_gene_white = vegdist(genes_fecal_filtered_white[,2:42254], method = "jaccard")
 
 genes_oral_filtered_black = genes_oral_filtered %>% filter(Ethnicity == "Black")
 genes_oral_filtered_white = genes_oral_filtered %>% filter(Ethnicity == "White")
@@ -143,11 +143,11 @@ brayfg <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Fecal") +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.001, r<sup>2</sup> = 4.2% (All)</b><br><i>p</i> = 0.348, r<sup>2</sup> = 6.4% (Before)<br><b><i>p</i> = 0.013, r<sup>2</sup> = 4.3% (During)</b><br><i>p</i> = 0.125, r<sup>2</sup> = 5.3% (After)<br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 5.9% (All)<br><i>p</i> = 0.008, r<sup>2</sup> = 6.8% (Before)<br><i>p</i> < 0.001, r<sup>2</sup> = 6.8% (During)<br><i>p</i> = 0.014, r<sup>2</sup> = 6.3% (After)</b><br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.160",
+           label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
 brayfg
@@ -175,11 +175,11 @@ brayog <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Oral") +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.053, r<sup>2</sup> = 6.0% (All)<br><i>p</i> = 0.272, r<sup>2</sup> = 7.3% (Before)<br><i>p</i> = 0.084, r<sup>2</sup> = 10.9% (After)<br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 11.2% (All)<br><i>p</i> = 0.002, r<sup>2</sup> = 15.1% (Before)</b><br><i>p</i> = 0.098, r<sup>2</sup> = 8.6% (After)<br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.111",
+           label = "Stress = 0.107",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
 brayog
@@ -203,11 +203,11 @@ brayfgs <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Fecal")  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.975, r<sup>2</sup> = 1.0% (Both)<br><i>p</i> = 0.998, r<sup>2</sup> = 1.3% (Black)<br><i>p</i> = 0.893, r<sup>2</sup> = 2.4% (White)<br>", 
+           label = "<i>p</i> = 0.999, r<sup>2</sup> = 0.9% (Both)<br><i>p</i> = 0.995, r<sup>2</sup> = 1.7% (Black)<br><i>p</i> = 0.996, r<sup>2</sup> = 1.7% (White)<br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.160",
+           label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
 brayfgs
@@ -231,11 +231,11 @@ brayogs <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Bray-Curtis - Oral")  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.956, r<sup>2</sup> = 1.3% (Both)<br><i>p</i> = 0.877, r<sup>2</sup> = 2.6% (Black)<br><i>p</i> = 0.428, r<sup>2</sup> = 7.3% (White)<br>", 
+           label = "<i>p</i> = 0.734, r<sup>2</sup> = 3.5% (Both)<br><i>p</i> = 0.860, r<sup>2</sup> = 1.8% (Black)<br><i>p</i> = 0.760, r<sup>2</sup> = 7.5% (White)<br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.111",
+           label = "Stress = 0.107",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
 brayogs
@@ -320,11 +320,11 @@ jaccfg <- ggplot(mds_jacc_f_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal") +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 4.2% (All)</b><br><i>p</i> = 0.243, r<sup>2</sup> = 7.3% (Before)<br><b><i>p</i> = 0.004, r<sup>2</sup> = 4.3% (During)</b><br><i>p</i> = 0.092, r<sup>2</sup> = 5.3% (After)<br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 5.2% (All)<br><i>p</i> = 0.008, r<sup>2</sup> = 6.1% (Before)<br><i>p</i> < 0.001, r<sup>2</sup> = 6.1% (During)<br><i>p</i> = 0.002, r<sup>2</sup> = 6.4% (After)</b><br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.145",
+           label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
 jaccfg
@@ -352,7 +352,7 @@ jaccog <- ggplot(mds_jacc_o_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Oral") +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.058, r<sup>2</sup> = 5.3% (All)<br><i>p</i> = 0.289, r<sup>2</sup> = 6.9% (Before)<br><i>p</i> = 0.084, r<sup>2</sup> = 9.9% (After)<br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 9.8% (All)<br><i>p</i> = 0.003, r<sup>2</sup> = 13.1% (Before)</b><br><i>p</i> = 0.103, r<sup>2</sup> = 8.3% (After)<br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -380,11 +380,11 @@ jaccfgs <- ggplot(mds_jacc_f_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Fecal")  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.993, r<sup>2</sup> = 1.0% (Both)<br><i>p</i> = 0.997, r<sup>2</sup> = 1.5% (Black)<br><i>p</i> = 0.904, r<sup>2</sup> = 2.6% (White)<br>", 
+           label = "<i>p</i> = 0.999, r<sup>2</sup> = 1.0% (Both)<br><i>p</i> = 0.996, r<sup>2</sup> = 2.0% (Black)<br><i>p</i> = 0.998, r<sup>2</sup> = 1.9% (White)<br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.145",
+           label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
 jaccfgs
@@ -408,7 +408,7 @@ jaccogs <- ggplot(mds_jacc_o_gene_points2, aes(x = MDS1, y = MDS2,
                type = "t", level = 0.95) + 
   ggtitle("COGs - Jaccard - Oral")  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.985, r<sup>2</sup> = 1.4% (Both)<br><i>p</i> = 0.955, r<sup>2</sup> = 2.6% (Black)<br><i>p</i> = 0.440, r<sup>2</sup> = 7.4% (White)<br>", 
+           label = "<i>p</i> = 0.997, r<sup>2</sup> = 0.9% (Both)<br><i>p</i> = 0.851, r<sup>2</sup> = 2.3% (Black)<br><i>p</i> = 0.961, r<sup>2</sup> = 3.0% (White)<br>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -456,10 +456,10 @@ gene_fecal_before = genes_fecal_filtered %>%
 gene_oral_before = genes_oral_filtered %>% 
   filter(`Study period` == "Before")
 
-brayf_gene_b = vegdist(gene_fecal_before[,2:40168], method = "bray")
-jaccf_gene_b = vegdist(gene_fecal_before[,2:40168], method = "jaccard")
-brayo_gene_b = vegdist(gene_oral_before[,2:32391], method = "bray")
-jacco_gene_b = vegdist(gene_oral_before[,2:32391], method = "jaccard")
+brayf_gene_b = vegdist(gene_fecal_before[,2:42254], method = "bray")
+jaccf_gene_b = vegdist(gene_fecal_before[,2:42254], method = "jaccard")
+brayo_gene_b = vegdist(gene_oral_before[,2:33457], method = "bray")
+jacco_gene_b = vegdist(gene_oral_before[,2:33457], method = "jaccard")
 ```
 #### Bray-Curtis - Before
 Fecal
@@ -600,7 +600,7 @@ jaccogb <- ggplot(mds_jacc_o_geneb_points2, aes(x = MDS1, y = MDS2,
 jaccogb
 ```
 ```{r nmds_save_jacc_gene_before}
-tiff(file = "figures/nmds_plot_cog_jacc_before.tif", 
+tiff(file = "figures/nmds_plot_cog_jacc_before_y1.tif", 
      res = 150, width = 18, height = 7, units = "in")
 legend1 = get_legend(jaccfgb + theme(legend.box.margin = margin(0, 0, 0, 12)))
 col1 = plot_grid(jaccfgb + theme(legend.position = "none"),
@@ -621,8 +621,8 @@ Filter samples from during the diet intervention and recalculate Bray-Curtis and
 gene_fecal_during = genes_fecal_filtered %>% 
   filter(`Study period` == "During")
 
-brayf_gene_d = vegdist(gene_fecal_during[,2:40168], method = "bray")
-jaccf_gene_d = vegdist(gene_fecal_during[,2:40168], method = "jaccard")
+brayf_gene_d = vegdist(gene_fecal_during[,2:42254], method = "bray")
+jaccf_gene_d = vegdist(gene_fecal_during[,2:42254], method = "jaccard")
 ```
 #### Bray-Curtis - During
 Fecal
@@ -658,7 +658,7 @@ brayfgd
 ```
 
 ```{r nmds_save_bray_gene_during}
-tiff(file = "figures/nmds_plot_cog_bray_during.tif", 
+tiff(file = "figures/nmds_plot_cog_bray_during_y1.tif", 
      res = 150, width = 9, height = 7, units = "in")
 brayfgd
 dev.off()
@@ -697,7 +697,7 @@ jaccfgd
 ```
 
 ```{r nmds_save_jacc_gene_during}
-tiff(file = "figures/nmds_plot_cog_jacc_during.tif", 
+tiff(file = "figures/nmds_plot_cog_jacc_during_y1.tif", 
      res = 150, width = 9, height = 7, units = "in")
 jaccfgd
 dev.off()
@@ -711,10 +711,10 @@ gene_fecal_after = genes_fecal_filtered %>%
 gene_oral_after = genes_oral_filtered %>% 
   filter(`Study period` == "After")
 
-brayf_gene_a = vegdist(gene_fecal_after[,2:40168], method = "bray")
-jaccf_gene_a = vegdist(gene_fecal_after[,2:40168], method = "jaccard")
-brayo_gene_a = vegdist(gene_oral_after[,2:32391], method = "bray")
-jacco_gene_a = vegdist(gene_oral_after[,2:32391], method = "jaccard")
+brayf_gene_a = vegdist(gene_fecal_after[,2:42254], method = "bray")
+jaccf_gene_a = vegdist(gene_fecal_after[,2:42254], method = "jaccard")
+brayo_gene_a = vegdist(gene_oral_after[,2:33457], method = "bray")
+jacco_gene_a = vegdist(gene_oral_after[,2:33457], method = "jaccard")
 ```
 #### Bray-Curtis - After
 Fecal
@@ -779,7 +779,7 @@ brayoga
 ```
 
 ```{r nmds_save_bray_gene_after}
-tiff(file = "figures/nmds_plot_cog_bray_after.tif", 
+tiff(file = "figures/nmds_plot_cog_bray_after_y1.tif", 
      res = 150, width = 18, height = 7, units = "in")
 legend1 = get_legend(brayfga + theme(legend.box.margin = margin(0, 0, 0, 12)))
 col1 = plot_grid(brayfga + theme(legend.position = "none"),
@@ -856,7 +856,7 @@ jaccoga
 ```
 
 ```{r nmds_save_jacc_gene_after}
-tiff(file = "figures/nmds_plot_cog_jacc_after.tif", 
+tiff(file = "figures/nmds_plot_cog_jacc_after_y1.tif", 
      res = 150, width = 18, height = 7, units = "in")
 legend1 = get_legend(jaccfga + theme(legend.box.margin = margin(0, 0, 0, 12)))
 col1 = plot_grid(jaccfga + theme(legend.position = "none"),
