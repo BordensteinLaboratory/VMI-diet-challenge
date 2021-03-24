@@ -97,7 +97,7 @@ Differences in the COG profiles of the community associated with self-reported E
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf_gene}
-adonis2(brayf_gene ~ Ethnicity, data = genes_fecal_filtered, 
+adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = genes_fecal_filtered, 
         permutations = 4999)
 adonis2(brayf_gene ~ `Study period`, data = genes_fecal_filtered, 
         permutations = 4999)
@@ -109,7 +109,7 @@ adonis2(brayf_gene_white ~ `Study period`, data = genes_fecal_filtered_white,
 
 Oral
 ```{r permanova_brayo_gene}
-adonis2(brayo_gene ~ Ethnicity, data = genes_oral_filtered, 
+adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = genes_oral_filtered, 
         permutations = 4999)
 adonis2(brayo_gene ~ `Study period`, data = genes_oral_filtered, 
         permutations = 4999)
@@ -125,7 +125,7 @@ mds_bray_f_gene_points<-mds_bray_f_gene$points
 mds_bray_f_gene_points2<-merge(x=mds_bray_f_gene_points, 
                                y = genes_fecal_filtered, 
                                   by.x = "row.names", by.y = "row.names")
-brayfg <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2, 
+brayfgy1 <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2, 
                                                  color = Ethnicity)) +
   geom_point(size=3) + scale_color_manual(
     values = c("White"="#87ceeb","Black"="#f5c4ca")) +
@@ -150,14 +150,14 @@ brayfg <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2,
            label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
-brayfg
+brayfgy1
 
 mds_bray_o_gene<-metaMDS(brayo_gene, k=2, trymax=499)
 mds_bray_o_gene_points<-mds_bray_o_gene$points
 mds_bray_o_gene_points2<-merge(x=mds_bray_o_gene_points, 
                                y = genes_oral_filtered, 
                                   by.x = "row.names", by.y = "row.names")
-brayog <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2, 
+brayogy1 <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2, 
                                                  color = Ethnicity)) +
   geom_point(size=3) + scale_color_manual(
     values = c("White"="#87ceeb","Black"="#f5c4ca")) +
@@ -182,9 +182,9 @@ brayog <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2,
            label = "Stress = 0.107",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
-brayog
+brayogy1
 
-brayfgs <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2, 
+brayfgy1s <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2, 
                                                  color = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
     values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
@@ -200,8 +200,7 @@ brayfgs <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2,
                                               fill = `Study period`), 
                    alpha = 0.2, size = 0.8, geom = "polygon",
                linetype = 2,
-               type = "t", level = 0.95) + 
-  ggtitle("COGs - Bray-Curtis - Fecal")  +
+               type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<i>p</i> = 0.999, r<sup>2</sup> = 0.9% (Both)<br><i>p</i> = 0.995, r<sup>2</sup> = 1.7% (Black)<br><i>p</i> = 0.996, r<sup>2</sup> = 1.7% (White)<br>", 
            x = Inf, y = Inf, size = 4,
@@ -210,9 +209,9 @@ brayfgs <- ggplot(mds_bray_f_gene_points2, aes(x = MDS1, y = MDS2,
            label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
-brayfgs
+brayfgy1s
 
-brayogs <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2, 
+brayogy1s <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2, 
                                                  color = `Study period`)) +
   geom_point(size=3) + scale_color_manual(
     values = c("Before"="#238b45","After"="#2171b5")) + 
@@ -228,8 +227,7 @@ brayogs <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2,
                                               fill = `Study period`), 
                    alpha = 0.2, size = 0.8, geom = "polygon",
                linetype = 2,
-               type = "t", level = 0.95) + 
-  ggtitle("COGs - Bray-Curtis - Oral")  +
+               type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<i>p</i> = 0.734, r<sup>2</sup> = 3.5% (Both)<br><i>p</i> = 0.860, r<sup>2</sup> = 1.8% (Black)<br><i>p</i> = 0.760, r<sup>2</sup> = 7.5% (White)<br>", 
            x = Inf, y = Inf, size = 4,
@@ -238,7 +236,7 @@ brayogs <- ggplot(mds_bray_o_gene_points2, aes(x = MDS1, y = MDS2,
            label = "Stress = 0.107",
            x = Inf, y = -Inf, size = 4,
            hjust = 1.1, vjust = 0)
-brayogs
+brayogy1s
 ```
 
 ```{r nmds_save_bray_gene}
@@ -1726,3 +1724,220 @@ plot = plot_grid(col1, col2, legend1, nrow = 1, ncol = 3,
 plot
 dev.off()
 ```
+
+## ARGS
+
+Antibiotic resistance genes were identified and quantified with ShortBRED.
+
+### Set up the environment
+Load the necessary libraries.
+```{r libraries_args, results=FALSE, error=FALSE}
+library(tidyverse)
+library(vegan)
+library(ggplot2)
+library(ggtext)
+library(cowplot)
+library(car)
+library(multcomp)
+library(ggpubr)
+library(fdrtool)
+```
+
+### Importing data
+Import metadata
+```{r import_meta_args, error=FALSE}
+metadata_args = read_tsv("year1_sample_mapping_args_noout.tsv") %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
+```
+
+Import normalized, arg abundance table with subject 21 removed. Transpose.
+```{r import_args, error=FALSE}
+arg_table = read_tsv("all_shortbred_abundance_year1.tsv")
+args = arg_table %>% gather(file, count, 2:193) %>% 
+  spread(Family, count)
+```
+
+### Filter samples
+
+Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples.
+
+```{r filter_arg}
+args_fecal = args %>% left_join(metadata_args, by = "file") %>% 
+  filter(fecal_use == 1)
+args_fecal_filtered = args_fecal %>% 
+  mutate(total = rowSums(args_fecal[,2:889])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
+write_csv(args_fecal_filtered, "arg_fecal_year1.csv")
+args_fecal_filtered = read_csv("arg_fecal_year1.csv")
+
+args_oral = args %>% left_join(metadata_args, by = "file") %>% 
+  filter(oral_use == 1)
+args_oral_filtered = args_oral %>% 
+  mutate(total = rowSums(args_oral[,2:889])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
+write_csv(args_oral, "arg_oral_year1.csv")
+args_oral_filtered = read_csv("arg_oral_year1.csv")
+```
+
+### Calculating beta diversity metrics
+Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+```{r beta_metrics_arg, error=FALSE}
+brayf_arg = vegdist(args_fecal_filtered[,2:185], method = "bray")
+brayo_arg = vegdist(args_oral_filtered[,2:86], method = "bray")
+```
+
+NMDS visualization of Bray-Curtis dissimilarity with all samples.
+```{r nmds_bray_arg, echo=FALSE, error=FALSE}
+mds_bray_f_arg<-metaMDS(brayf_arg, k=2, trymax=499)
+mds_bray_f_arg_points<-mds_bray_f_arg$points
+mds_bray_f_arg_points2<-merge(x=mds_bray_f_arg_points, 
+                               y = args_fecal_filtered, 
+                                  by.x = "row.names", by.y = "row.names")
+brayfargy1 <- ggplot(mds_bray_f_arg_points2, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_text(size=rel(2)), 
+        axis.title.y=element_text(size=rel(2)),
+        plot.title = element_text(size=rel(3)),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(data = mds_bray_f_arg_points2, aes(x = MDS1, y = MDS2, 
+                                              fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 9.9% (All)<br><i>p</i> = 0.002, r<sup>2</sup> = 11.5% (Before)<br><i>p</i> < 0.001, r<sup>2</sup> = 9.6% (During)<br><i>p</i> = 0.002, r<sup>2</sup> = 13.0% (After)</b><br>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.192",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayfargy1
+
+mds_bray_o_arg<-metaMDS(brayo_arg, k=2, trymax=499)
+mds_bray_o_arg_points<-mds_bray_o_arg$points
+mds_bray_o_arg_points2<-merge(x=mds_bray_o_arg_points, 
+                               y = args_oral_filtered, 
+                                  by.x = "row.names", by.y = "row.names")
+brayoargy1 <- ggplot(mds_bray_o_arg_points2, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_text(size=rel(2)), 
+        axis.title.y=element_text(size=rel(2)),
+        plot.title = element_text(size=rel(3)),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(data = mds_bray_o_arg_points2, aes(x = MDS1, y = MDS2, 
+                                              fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> = 0.003, r<sup>2</sup> = 7.6% (All)<br><i>p</i> = 0.034, r<sup>2</sup> = 9.7% (Before)</b><br><i>p</i> = 0.202, r<sup>2</sup> = 6.7% (After)<br>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.124",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayoargy1
+
+brayfargy1s <- ggplot(mds_bray_f_arg_points2, aes(x = MDS1, y = MDS2, 
+                                                 color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_text(size=rel(2)), 
+        axis.title.y=element_text(size=rel(2)),
+        plot.title = element_text(size=rel(3)),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(data = mds_bray_f_arg_points2, aes(x = MDS1, y = MDS2, 
+                                              fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.997, r<sup>2</sup> = 0.6% (Both)<br><i>p</i> = 0.904, r<sup>2</sup> = 2.4% (Black)<br><i>p</i> = 0.977, r<sup>2</sup> = 1.5% (White)<br>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.192",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayfargy1s
+
+brayoargy1s <- ggplot(mds_bray_o_arg_points2, aes(x = MDS1, y = MDS2, 
+                                                 color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","After"="#2171b5")) + 
+  scale_fill_manual(values = c("Before"="#238b45","After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_text(size=rel(2)), 
+        axis.title.y=element_text(size=rel(2)),
+        plot.title = element_text(size=rel(3)),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(data = mds_bray_o_arg_points2, aes(x = MDS1, y = MDS2, 
+                                              fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.997, r<sup>2</sup> = 0.3% (Both)<br><i>p</i> = 0.994, r<sup>2</sup> = 0.4% (Black)<br><i>p</i> = 0.898, r<sup>2</sup> = 2.4% (White)<br>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.124",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayoargy1s
+```
+
+## Combo graph for supplement
+
+```{r nmds_save_bray_combo}
+tiff(file = "figures/nmds_plot_all.tif", res = 300, width = 30, 
+     height = 30, units = "in")
+legend1 = get_legend(brayfsy1 + theme(legend.box.margin = margin(0, 0, 0, 12)))
+legend2 = get_legend(brayosy1 + theme(legend.box.margin = margin(0, 0, 0, 12)))
+col1 = plot_grid(brayfsy1 + theme(legend.position = "none"),
+                 brayosy1 + theme(legend.position = "none"),
+                 brayfsy2 + theme(legend.position = "none"),
+                 brayosy2 + theme(legend.position = "none"),
+                 nrow = 4, ncol = 1, labels = c("A","D","G","J"), 
+                 label_size = 20)
+col2 = plot_grid(brayfgy1s + theme(legend.position = "none"),
+                 brayogy1s + theme(legend.position = "none"),
+                 brayfgy2s + theme(legend.position = "none"),
+                 brayogy2s + theme(legend.position = "none"),
+                 nrow = 4, ncol = 1, labels = c("B","E","H","K"), 
+                 label_size = 20) 
+col3 = plot_grid(brayfargy1s + theme(legend.position = "none"),
+                 brayoargy1s + theme(legend.position = "none"),
+                 brayfargy2s + theme(legend.position = "none"),
+                 brayoargy2s + theme(legend.position = "none"),
+                 nrow = 4, ncol = 1, labels = c("C","F","I","L"), 
+                 label_size = 20) 
+col4 = plot_grid(legend1, legend2, nrow = 2, ncol =1, labels = c(""))
+plot = plot_grid(col1, col2, col3, col4, nrow = 1, ncol = 5, 
+          rel_widths = c(1.5, 1.5, 1.5, 0.5), 
+          align = "h", axis = "t")
+plot
+dev.off()
+```
+
