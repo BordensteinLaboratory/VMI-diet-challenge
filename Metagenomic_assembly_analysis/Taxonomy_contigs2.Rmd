@@ -20,11 +20,13 @@ library(tidyverse)
 Taxids with taxonomy are imported. Relative abundances of each taxid for individual samples are imported and vertically appended. We then reshape the dataframe. Taxid file and relative abundance file are joined to append taxonomy.
 
 ```{r import, echo = F}
-taxid = read_tsv("taxonomy_files/tax.txt")
+taxid = read_tsv("taxonomy_files/tax.txt") %>% 
+  select(-contig) %>% 
+  distinct()
 ra_files = list.files(path = "taxonomy_files", pattern = "run", full.names = T)
 rel_abund_long = map_dfr(ra_files, read_tsv)
 rel_abund_notax = rel_abund_long %>% pivot_wider(names_from = "id", values_from = "relative")
-rel_abund = rel_abund_notax %>% left_join(taxid)
+rel_abund = rel_abund_notax %>% right_join(taxid)
 ```
 
 
