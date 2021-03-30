@@ -1,5 +1,5 @@
 ---
-title: "Metabolome Analysis"
+  title: "Metabolome Analysis"
 author: "Rob Markowitz"
 date: "1/25/2020"
 output: html_document
@@ -16,8 +16,8 @@ adonisResult <- NULL
 adonisEthnicity <- NULL
 adonisTime <- NULL
 meta_file <- 
-data_file <-
-####Data Cleaning####
+  data_file <-
+  ####Data Cleaning####
 df <- read.csv(data_file, check.names = F, stringsAsFactors = FALSE)
 df_meta <- read.csv(meta_file, check.names = F, stringsAsFactors = FALSE)
 df_clean <- drop(df[,c(-1,-4:-13)])
@@ -29,15 +29,15 @@ df_tidy <- rename(df_tidy,Measure=value, Metabolite =BIOCHEMICAL)
 ####Ethnicity#####
 for(time in Time){ 
   for (var in classes) {
-df_spread2 <- df_tidy%>% 
-  filter(SUPER_PATHWAY == var)%>%
-  spread(Metabolite, Measure)
-df_edit <- within(df_spread2, rm(SUPER_PATHWAY))
-p.env <- df_edit[c(1:3)]
-pdat<-(df_edit[c(4:length(df_edit))])
-adonisResult[[var]]<- adonis2(pdat~Ethnicity, data = p.env, permutations = 999, method = distance,na.rm = T) 
-adonisEthnicity[[time]] <- adonisResult
-}
+    df_spread2 <- df_tidy%>% 
+      filter(SUPER_PATHWAY == var)%>%
+      spread(Metabolite, Measure)
+    df_edit <- within(df_spread2, rm(SUPER_PATHWAY))
+    p.env <- df_edit[c(1:3)]
+    pdat<-(df_edit[c(4:length(df_edit))])
+    adonisResult[[var]]<- adonis2(pdat~Ethnicity, data = p.env, permutations = 999, method = distance,na.rm = T) 
+    adonisEthnicity[[time]] <- adonisResult
+  }
 }
 
 #Diet
