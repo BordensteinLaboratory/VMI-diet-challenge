@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r libraries}
 library(tidyverse)
+library(vegan)
 library(fdrtool)
 ```
 
@@ -148,9 +149,176 @@ rel_abund_tax_oral_after_ethnicity = rel_abund_tax_oral_after %>%
 write_csv(rel_abund_tax_oral_after_ethnicity, "tables/relab_oral_after.csv")
 ```
 
+### PERMANOVAs
+
+Bray-Curtis and Jaccard distance matrices are created using vegan (v2.5-7). Matrices are constructed for all oral samples, all fecal samples, and oral and fecal samples broken down by ethnicity and study stage.
+
+```{r beta_metrics, error=FALSE}
+bray_fecal = vegdist(relab_fecal_filtered[,2:9266], method = "bray")
+jacc_fecal = vegdist(relab_fecal_filtered[,2:9266], method = "jaccard")
+bray_fecal_black = vegdist(relab_fecal_filtered_black[,2:9266], 
+                           method = "bray")
+bray_fecal_white = vegdist(relab_fecal_filtered_white[,2:9266], 
+                           method = "bray")
+jacc_fecal_black = vegdist(relab_fecal_filtered_black[,2:9266], 
+                           method = "jaccard")
+jacc_fecal_white = vegdist(relab_fecal_filtered_white[,2:9266], 
+                           method = "jaccard")
+bray_fecal_before = vegdist(relab_fecal_filtered_before[,2:9266], 
+                           method = "jaccard")
+bray_fecal_during = vegdist(relab_fecal_filtered_during[,2:9266], 
+                           method = "jaccard")
+bray_fecal_after = vegdist(relab_fecal_filtered_after[,2:9266], 
+                           method = "jaccard")
+jacc_fecal_before = vegdist(relab_fecal_filtered_before[,2:9266], 
+                           method = "jaccard")
+jacc_fecal_during = vegdist(relab_fecal_filtered_during[,2:9266], 
+                           method = "jaccard")
+jacc_fecal_after = vegdist(relab_fecal_filtered_after[,2:9266], 
+                           method = "jaccard") 
+
+bray_oral = vegdist(relab_oral_filtered[,2:8063], method = "bray")
+jacc_oral = vegdist(relab_oral_filtered[,2:272], method = "jaccard")
+bray_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "bray")
+bray_oral_white = vegdist(relab_oral_filtered_white[,2:8063], method = "bray")
+jacc_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "jaccard")
+jacc_oral_white = vegdist(relab_oral_filtered_white[,2:8063], method = "jaccard")
+bray_oral_before = vegdist(relab_oral_filtered_before[,2:8063], 
+                           method = "jaccard")
+bray_oral_after = vegdist(relab_oral_filtered_after[,2:8063], 
+                          method = "jaccard")
+jacc_oral_before = vegdist(relab_oral_filtered_before[,2:8063], 
+                           method = "jaccard")
+jacc_oral_after = vegdist(relab_oral_filtered_after[,2:8063], 
+                          method = "jaccard")
+```
+
+Differences in the taxonomic structure of the community associated with self-reported ethnicity, subject id, and study stage is assessed using permutational multivariate analysis of variance.
+
+#### Bray-Curtis
+Fecal
+```{r permanova_brayf}
+adonis2(bray_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
+        data = relab_fecal_filtered, 
+        permutations = 4999)
+adonis2(bray_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_fecal_filtered, permutations = 4999)
+
+adonis2(bray_fecal ~ Ethnicity, 
+        data = relab_fecal_filtered, 
+        permutations = 4999)
+adonis2(bray_fecal_before ~ Ethnicity, 
+        data = relab_fecal_filtered_before, 
+        permutations = 4999)
+adonis2(bray_fecal_during ~ Ethnicity, 
+        data = relab_fecal_filtered_during, 
+        permutations = 4999)
+adonis2(bray_fecal_after ~ Ethnicity, 
+        data = relab_fecal_filtered_after, 
+        permutations = 4999)
+
+adonis2(bray_fecal ~ `Study period`, 
+        data = relab_fecal_filtered, 
+        permutations = 4999)
+adonis2(bray_fecal_black ~ `Study period`, 
+        data = relab_fecal_filtered_black, 
+        permutations = 4999)
+adonis2(bray_fecal_white ~ `Study period`, 
+        data = relab_fecal_filtered_white, 
+        permutations = 4999)
+```
+
+Oral
+```{r permanova_brayo}
+adonis2(bray_oral ~ subject_id + `Study period`, 
+        data = relab_oral_filtered, 
+        permutations = 4999)
+adonis2(bray_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_oral_filtered, permutations = 4999)
+
+adonis2(bray_oral ~ Ethnicity, 
+        data = relab_oral_filtered, 
+        permutations = 4999)
+adonis2(bray_oral_before ~ Ethnicity, 
+        data = relab_oral_filtered_before, 
+        permutations = 4999)
+adonis2(bray_oral_after ~ Ethnicity, 
+        data = relab_oral_filtered_after, 
+        permutations = 4999)
+
+adonis2(bray_oral ~ `Study period`, 
+        data = relab_oral_filtered, 
+        permutations = 4999)
+adonis2(bray_oral_black ~ `Study period`, 
+        data = relab_oral_filtered_black, 
+        permutations = 4999)
+adonis2(bray_oral_white ~ `Study period`, 
+        data = relab_oral_filtered_white, 
+        permutations = 4999)
+
+```
+
+#### Jaccard
+Fecal
+```{r permanova_jaccf}
+adonis2(jacc_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
+        data = relab_fecal_filtered, 
+        permutations = 4999)
+adonis2(jacc_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_fecal_filtered, permutations = 4999)
+
+adonis2(jacc_fecal ~ Ethnicity, 
+        data = relab_fecal_filtered, 
+        permutations = 4999)
+adonis2(jacc_fecal_before ~ Ethnicity, 
+        data = relab_fecal_filtered_before, 
+        permutations = 4999)
+adonis2(jacc_fecal_during ~ Ethnicity, 
+        data = relab_fecal_filtered_during, 
+        permutations = 4999)
+adonis2(jacc_fecal_after ~ Ethnicity, 
+        data = relab_fecal_filtered_after, 
+        permutations = 4999)
+
+adonis2(jacc_fecal ~ `Study period`, 
+        data = relab_fecal_filtered, 
+        permutations = 4999)
+adonis2(jacc_fecal_black ~ `Study period`, 
+        data = relab_fecal_filtered_black, 
+        permutations = 4999)
+adonis2(jacc_fecal_white ~ `Study period`, 
+        data = relab_fecal_filtered_white, 
+        permutations = 4999)
+```
+
+Oral
+```{r permanova_jacco}
+adonis2(jacc_oral ~ subject_id + `Study period`, 
+        data = relab_oral_filtered, 
+        permutations = 4999)
+adonis2(bray_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_oral_filtered, permutations = 4999)
+
+adonis2(jacc_oral ~ Ethnicity, 
+        data = relab_oral_filtered, 
+        permutations = 4999)
+adonis2(jacc_oral_before ~ Ethnicity, 
+        data = relab_oral_filtered_before, 
+        permutations = 4999)
+adonis2(jacc_oral_after ~ Ethnicity, 
+        data = relab_oral_filtered_after, 
+        permutations = 4999)
+
+adonis2(jacc_oral ~ `Study period`, 
+        data = relab_oral_filtered, 
+        permutations = 4999)
+adonis2(jacc_oral_black ~ `Study period`, 
+        data = relab_oral_filtered_black, 
+        permutations = 4999)
+adonis2(jacc_oral_white ~ `Study period`, 
+        data = relab_oral_filtered_white, 
+        permutations = 4999)
+```
+
 ### Taxonomic abundance
 
-Wilcoxon Rank Sum tests were used to assess if self-reported Ethnicity is associated with the abundance of individual species identified at the rank of genus or above.
+Wilcoxon Rank Sum tests (base R) were used to assess if self-reported Ethnicity is associated with the abundance of individual species identified at the rank of genus or above. P-values are corrected using fdrtool (v.1.2.16).
 
 ```{r taxa_models_fecal}
 Ethnicity_estimatematrix = mat.or.vec(182,2)
