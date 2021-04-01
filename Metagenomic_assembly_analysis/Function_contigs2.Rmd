@@ -1,0 +1,40 @@
+---
+title: "Function contigs year 2"
+author: "Liz Mallott"
+date: "4/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setting up environment
+
+```{r libraries}
+library(tidyverse)
+library(here)
+library(readr)
+```
+
+## ARGs
+
+Import individual relative abundance files. Collect and clean strings. Summarize based on ARG functional categories.
+````{r import_args}
+data_dir <- here("/Users/goblinking/Projects/ko_args/args/arg_ra")
+class <- read_tsv("/Users/goblinking/Projects/ko_args/args/other/arg.category.txt") %>% 
+    rename(.,RF= ResfamID)
+data_list <- fs::dir_ls(data_dir, regexp = ".txt$")
+data <-  data_list %>% 
+  map_dfr(read_tsv, .id = "source") %>% 
+  mutate(source2 = stringr::str_replace(source, "/Users/goblinking/Projects/ko_args/args/arg_ra/", "")) %>% 
+  mutate(sample = sub('\\.txt$', '', source2)) %>% 
+  left_join(.,class, by="RF") %>% 
+  select(-source,-source2, -RF, -taxid)
+  
+data_abund <- data %>% rename(mechanism =`Mechanism Classification`) %>% 
+  group_by(mechanism,sample) %>% 
+  summarize(total = sum(abundance)) %>% 
+  spread(mechanism,total) %>% 
+  write_tsv("wide_arg_c2_contig.tsv")
+```

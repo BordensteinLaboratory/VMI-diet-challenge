@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(vegan)
 library(fdrtool)
+library(dendextend)
 ```
 
 ## Import data
@@ -149,7 +150,7 @@ rel_abund_tax_oral_after_ethnicity = rel_abund_tax_oral_after %>%
 write_csv(rel_abund_tax_oral_after_ethnicity, "tables/relab_oral_after.csv")
 ```
 
-### PERMANOVAs
+## PERMANOVAs
 
 Bray-Curtis and Jaccard distance matrices are created using vegan (v2.5-7). Matrices are constructed for all oral samples, all fecal samples, and oral and fecal samples broken down by ethnicity and study stage.
 
@@ -316,7 +317,7 @@ adonis2(jacc_oral_white ~ `Study period`,
         permutations = 4999)
 ```
 
-### Taxonomic abundance
+## Taxonomic abundance
 
 Wilcoxon Rank Sum tests (base R) were used to assess if self-reported Ethnicity is associated with the abundance of individual species identified at the rank of genus or above. P-values are corrected using fdrtool (v.1.2.16).
 
@@ -379,3 +380,431 @@ taxa_Ethnicity_corrected = bind_cols(taxa_Ethnicity_nona,
 write.csv(taxa_Ethnicity_corrected, "tables/taxa_oral_wilcox_Ethnicity_corrected_y2.csv")
 ```
 
+## Dendrogram
+
+Import data and filter into fecal and oral metagenomes.
+
+```{r dendro_import}
+y1tax = read_tsv("taxon_meta_y1.txt")
+
+y1taxoral = y1tax %>% 
+  column_to_rownames("sample.name") %>% 
+  filter(source == "oral") %>% 
+  dplyr::select(7:9377)
+
+y1taxfecal = y1tax %>% 
+  column_to_rownames("sample.name") %>% 
+  filter(source == "fecal") %>% 
+  dplyr::select(7:9377)
+
+y1vir = read_tsv("virome.txt")
+y1virfecal = y1vir %>% 
+  column_to_rownames("sample") %>% 
+  dplyr::select(5:4429)
+
+y2taxfecal = relab_fecal_filtered %>% 
+  column_to_rownames("SampleID")%>% 
+  dplyr::select(2:9266)
+
+y2taxoral = relab_oral_filtered %>% 
+  column_to_rownames("SampleID")%>% 
+  dplyr::select(2:8063)
+```
+Create labeled dendrograms for fecal and oral samples in each year.
+
+```{r dendro_y1fecal}
+y1fecal.dist <- vegdist(y1taxfecal, method = "bray", permutations = 999)
+y1fecal.clus <- hclust(y1fecal.dist, "aver")
+
+y1fcd = as.dendrogram(y1fecal.clus) 
+
+y1taxf = y1tax %>% filter(source == "fecal")
+Ethnicity = rep("Black", length(rownames(y1taxf)))
+is_x = grepl("Caucasian", y1taxf$Ethnicity)
+Ethnicity[is_x] = "White"
+Ethnicity = factor(Ethnicity)
+n_Ethnicity = length(unique(Ethnicity))
+cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+col_Ethnicity = cols_2[Ethnicity]
+
+Stage = rep("Before", length(rownames(y1taxf)))
+is_x = grepl("during", y1taxf$stage)
+Stage[is_x] = "During"
+is_x = grepl("after", y1taxf$stage)
+Stage[is_x] = "After"
+Stage = factor(Stage)
+n_Stage = length(unique(Stage))
+cols_3 = c("Before" = "#4daf4a", "During" = "#e41a1c", "After" = "#377eb8")
+col_Stage = cols_3[Stage]
+
+Subject = rep("1", length(rownames(y1taxfecal)))
+is_x = grepl("02", rownames(y1taxfecal))
+Subject[is_x] = "2"
+is_x = grepl("03", rownames(y1taxfecal))
+Subject[is_x] = "3"
+is_x = grepl("04", rownames(y1taxfecal))
+Subject[is_x] = "4"
+is_x = grepl("05", rownames(y1taxfecal))
+Subject[is_x] = "5"
+is_x = grepl("06", rownames(y1taxfecal))
+Subject[is_x] = "6"
+is_x = grepl("07", rownames(y1taxfecal))
+Subject[is_x] = "7"
+is_x = grepl("03", rownames(y1taxfecal))
+Subject[is_x] = "3"
+is_x = grepl("08", rownames(y1taxfecal))
+Subject[is_x] = "8"
+is_x = grepl("09", rownames(y1taxfecal))
+Subject[is_x] = "9"
+is_x = grepl("10", rownames(y1taxfecal))
+Subject[is_x] = "10"
+is_x = grepl("11", rownames(y1taxfecal))
+Subject[is_x] = "11"
+is_x = grepl("12", rownames(y1taxfecal))
+Subject[is_x] = "12"
+is_x = grepl("13", rownames(y1taxfecal))
+Subject[is_x] = "13"
+is_x = grepl("14", rownames(y1taxfecal))
+Subject[is_x] = "14"
+is_x = grepl("15", rownames(y1taxfecal))
+Subject[is_x] = "15"
+is_x = grepl("16", rownames(y1taxfecal))
+Subject[is_x] = "16"
+is_x = grepl("17", rownames(y1taxfecal))
+Subject[is_x] = "17"
+is_x = grepl("19", rownames(y1taxfecal))
+Subject[is_x] = "19"
+is_x = grepl("20", rownames(y1taxfecal))
+Subject[is_x] = "20"
+Subject = factor(Subject)
+n_Subject = length(unique(Subject))
+cols_19 = colorspace::rainbow_hcl(n_Subject, c = 50, l = 70)
+col_Subject = cols_19[Subject]
+labels_colors(y1fcd) = col_Subject[order.dendrogram(y1fcd)]
+
+svg("figures/y1_fecal_dendrogram.svg", width = 15, height = 10)
+y1fcd = assign_values_to_leaves_edgePar(y1fcd, 
+                                        value = col_Subject[order.dendrogram(y1fcd)], edgePar = "col") %>% 
+  set("branches_lwd", 4)
+layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
+layout(mat = layout.matrix, heights = c(6, 1))
+plot(y1fcd)
+colored_bars(cbind(col_Ethnicity[order.dendrogram(y1fcd)], 
+                   col_Stage[order.dendrogram(y1fcd)]), 
+             y1fcd)
+dev.off()
+```
+
+```{r dendro_y1oral}
+y1oral.dist <- vegdist(y1taxoral, method = "bray", permutations = 999)
+y1oral.clus <- hclust(y1oral.dist, "aver")
+
+y1ocd = as.dendrogram(y1oral.clus) 
+
+y1taxo = y1tax %>% filter(source == "oral")
+
+Ethnicity = rep("Black", length(rownames(y1taxo)))
+is_x = grepl("Caucasian", y1taxo$Ethnicity)
+Ethnicity[is_x] = "White"
+Ethnicity = factor(Ethnicity)
+n_Ethnicity = length(unique(Ethnicity))
+cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+col_Ethnicity = cols_2[Ethnicity]
+
+Stage = rep("Before", length(rownames(y1taxo)))
+is_x = grepl("after", y1taxo$stage)
+Stage[is_x] = "After"
+Stage = factor(Stage)
+n_Stage = length(unique(Stage))
+cols_3 = c("Before" = "#4daf4a", "After" = "#377eb8")
+col_Stage = cols_3[Stage]
+
+Subject = rep("1", length(rownames(y1taxoral)))
+is_x = grepl("02", rownames(y1taxoral))
+Subject[is_x] = "2"
+is_x = grepl("03", rownames(y1taxoral))
+Subject[is_x] = "3"
+is_x = grepl("04", rownames(y1taxoral))
+Subject[is_x] = "4"
+is_x = grepl("05", rownames(y1taxoral))
+Subject[is_x] = "5"
+is_x = grepl("06", rownames(y1taxoral))
+Subject[is_x] = "6"
+is_x = grepl("07", rownames(y1taxoral))
+Subject[is_x] = "7"
+is_x = grepl("08", rownames(y1taxoral))
+Subject[is_x] = "8"
+is_x = grepl("09", rownames(y1taxoral))
+Subject[is_x] = "9"
+is_x = grepl("10", rownames(y1taxoral))
+Subject[is_x] = "10"
+is_x = grepl("11", rownames(y1taxoral))
+Subject[is_x] = "11"
+is_x = grepl("12", rownames(y1taxoral))
+Subject[is_x] = "12"
+is_x = grepl("13", rownames(y1taxoral))
+Subject[is_x] = "13"
+is_x = grepl("14", rownames(y1taxoral))
+Subject[is_x] = "14"
+is_x = grepl("15", rownames(y1taxoral))
+Subject[is_x] = "15"
+is_x = grepl("16", rownames(y1taxoral))
+Subject[is_x] = "16"
+is_x = grepl("17", rownames(y1taxoral))
+Subject[is_x] = "17"
+is_x = grepl("19", rownames(y1taxoral))
+Subject[is_x] = "19"
+is_x = grepl("20", rownames(y1taxoral))
+Subject[is_x] = "20"
+Subject = factor(Subject)
+n_Subject = length(unique(Subject))
+cols_19 = colorspace::rainbow_hcl(n_Subject, c = 50, l = 70)
+col_Subject = cols_19[Subject]
+labels_colors(y1ocd) = col_Subject[order.dendrogram(y1ocd)]
+
+svg("figures/y1_oral_dendrogram.svg", width = 15, height = 10)
+y1ocd = assign_values_to_leaves_edgePar(y1ocd, 
+                                        value = col_Subject[order.dendrogram(y1ocd)], edgePar = "col") %>% 
+  set("branches_lwd", 4)
+layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
+layout(mat = layout.matrix, heights = c(6, 1))
+plot(y1ocd)
+colored_bars(cbind(col_Ethnicity[order.dendrogram(y1ocd)], 
+                   col_Stage[order.dendrogram(y1ocd)]), 
+             y1ocd)
+dev.off()
+```
+```{r dendro_y1virus}
+y1virus.dist <- vegdist(y1virfecal, method = "bray", permutations = 999)
+y1virus.clus <- hclust(y1virus.dist, "aver")
+
+y1vcd = as.dendrogram(y1virus.clus) 
+
+Ethnicity = rep("Black", length(rownames(y1vir)))
+is_x = grepl("Caucasian", y1vir$Ethnicity)
+Ethnicity[is_x] = "White"
+Ethnicity = factor(Ethnicity)
+n_Ethnicity = length(unique(Ethnicity))
+cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+col_Ethnicity = cols_2[Ethnicity]
+
+Stage = rep("Before", length(rownames(y1vir)))
+is_x = grepl("during", y1vir$Stage)
+Stage[is_x] = "During"
+is_x = grepl("after", y1vir$Stage)
+Stage[is_x] = "After"
+Stage = factor(Stage)
+n_Stage = length(unique(Stage))
+cols_3 = c("Before" = "#4daf4a", "During" = "#e41a1c", "After" = "#377eb8")
+col_Stage = cols_3[Stage]
+
+Subject = rep("1", length(rownames(y1virfecal)))
+is_x = grepl("02", rownames(y1virfecal))
+Subject[is_x] = "2"
+is_x = grepl("03", rownames(y1virfecal))
+Subject[is_x] = "3"
+is_x = grepl("04", rownames(y1virfecal))
+Subject[is_x] = "4"
+is_x = grepl("05", rownames(y1virfecal))
+Subject[is_x] = "5"
+is_x = grepl("06", rownames(y1virfecal))
+Subject[is_x] = "6"
+is_x = grepl("07", rownames(y1virfecal))
+Subject[is_x] = "7"
+is_x = grepl("08", rownames(y1virfecal))
+Subject[is_x] = "8"
+is_x = grepl("09", rownames(y1virfecal))
+Subject[is_x] = "9"
+is_x = grepl("10", rownames(y1virfecal))
+Subject[is_x] = "10"
+is_x = grepl("11", rownames(y1virfecal))
+Subject[is_x] = "11"
+is_x = grepl("12", rownames(y1virfecal))
+Subject[is_x] = "12"
+is_x = grepl("13", rownames(y1virfecal))
+Subject[is_x] = "13"
+is_x = grepl("14", rownames(y1virfecal))
+Subject[is_x] = "14"
+is_x = grepl("15", rownames(y1virfecal))
+Subject[is_x] = "15"
+is_x = grepl("16", rownames(y1virfecal))
+Subject[is_x] = "16"
+is_x = grepl("17", rownames(y1virfecal))
+Subject[is_x] = "17"
+is_x = grepl("19", rownames(y1virfecal))
+Subject[is_x] = "19"
+is_x = grepl("20", rownames(y1virfecal))
+Subject[is_x] = "20"
+Subject = factor(Subject)
+n_Subject = length(unique(Subject))
+cols_19 = colorspace::rainbow_hcl(n_Subject, c = 50, l = 70)
+col_Subject = cols_19[Subject]
+labels_colors(y1vcd) = col_Subject[order.dendrogram(y1vcd)]
+
+svg("figures/y1_virus_dendrogram.svg", width = 15, height = 10)
+y1vcd = assign_values_to_leaves_edgePar(y1vcd, 
+                                        value = col_Subject[order.dendrogram(y1vcd)], edgePar = "col") %>% 
+  set("branches_lwd", 4)
+layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
+layout(mat = layout.matrix, heights = c(6, 1))
+plot(y1vcd)
+colored_bars(cbind(col_Ethnicity[order.dendrogram(y1vcd)], 
+                   col_Stage[order.dendrogram(y1vcd)]), 
+             y1vcd)
+dev.off()
+```
+
+```{r dendro_y2fecal}
+y2fecal.dist <- vegdist(y2taxfecal, method = "bray", permutations = 999)
+y2fecal.clus <- hclust(y2fecal.dist, "aver")
+
+y2fcd = as.dendrogram(y2fecal.clus) 
+
+y2taxf = relab_fecal_filtered %>% 
+  dplyr::select(9266:9291)
+Ethnicity = rep("Black", length(rownames(y2taxf)))
+is_x = grepl("White", y2taxf$Ethnicity)
+Ethnicity[is_x] = "White"
+Ethnicity = factor(Ethnicity)
+n_Ethnicity = length(unique(Ethnicity))
+cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+col_Ethnicity = cols_2[Ethnicity]
+
+Stage = rep("Before", length(rownames(y2taxf)))
+is_x = grepl("During", y2taxf$`Study period`)
+Stage[is_x] = "During"
+is_x = grepl("After", y2taxf$`Study period`)
+Stage[is_x] = "After"
+Stage = factor(Stage)
+n_Stage = length(unique(Stage))
+cols_3 = c("Before" = "#4daf4a", "During" = "#e41a1c", "After" = "#377eb8")
+col_Stage = cols_3[Stage]
+
+Subject = rep("21", length(rownames(y2taxfecal)))
+is_x = grepl("22", rownames(y2taxfecal))
+Subject[is_x] = "22"
+is_x = grepl("23", rownames(y2taxfecal))
+Subject[is_x] = "23"
+is_x = grepl("24", rownames(y2taxfecal))
+Subject[is_x] = "24"
+is_x = grepl("25", rownames(y2taxfecal))
+Subject[is_x] = "25"
+is_x = grepl("26", rownames(y2taxfecal))
+Subject[is_x] = "26"
+is_x = grepl("27", rownames(y2taxfecal))
+Subject[is_x] = "27"
+is_x = grepl("29", rownames(y2taxfecal))
+Subject[is_x] = "29"
+is_x = grepl("30", rownames(y2taxfecal))
+Subject[is_x] = "30"
+is_x = grepl("31", rownames(y2taxfecal))
+Subject[is_x] = "31"
+is_x = grepl("32", rownames(y2taxfecal))
+Subject[is_x] = "32"
+is_x = grepl("33", rownames(y2taxfecal))
+Subject[is_x] = "33"
+is_x = grepl("34", rownames(y2taxfecal))
+Subject[is_x] = "34"
+is_x = grepl("35", rownames(y2taxfecal))
+Subject[is_x] = "35"
+is_x = grepl("36", rownames(y2taxfecal))
+Subject[is_x] = "36"
+is_x = grepl("37", rownames(y2taxfecal))
+Subject[is_x] = "37"
+is_x = grepl("38", rownames(y2taxfecal))
+Subject[is_x] = "38"
+Subject = factor(Subject)
+n_Subject = length(unique(Subject))
+cols_19 = colorspace::rainbow_hcl(n_Subject, c = 30, l = 50)
+col_Subject = cols_19[Subject]
+labels_colors(y2fcd) = col_Subject[order.dendrogram(y2fcd)]
+
+svg("figures/y2_fecal_dendrogram.svg", width = 15, height = 10)
+y2fcd = assign_values_to_leaves_edgePar(y2fcd, 
+                                        value = col_Subject[order.dendrogram(y2fcd)], edgePar = "col") %>% 
+  set("branches_lwd", 4)
+layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
+layout(mat = layout.matrix, heights = c(6, 1))
+plot(y2fcd)
+colored_bars(cbind(col_Ethnicity[order.dendrogram(y2fcd)], 
+                   col_Stage[order.dendrogram(y2fcd)]), 
+             y2fcd)
+dev.off()
+```
+
+```{r dendro_y2oral}
+y2oral.dist <- vegdist(y2taxoral, method = "bray", permutations = 999)
+y2oral.clus <- hclust(y2oral.dist, "aver")
+
+y2ocd = as.dendrogram(y2oral.clus) 
+
+y2taxo = relab_oral_filtered %>% 
+  dplyr::select(8064:8088)
+
+Ethnicity = rep("Black", length(rownames(y2taxo)))
+is_x = grepl("White", y2taxo$Ethnicity)
+Ethnicity[is_x] = "White"
+Ethnicity = factor(Ethnicity)
+n_Ethnicity = length(unique(Ethnicity))
+cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+col_Ethnicity = cols_2[Ethnicity]
+
+Stage = rep("Before", length(rownames(y2taxo)))
+is_x = grepl("After", y2taxo$`Study period`)
+Stage[is_x] = "After"
+Stage = factor(Stage)
+n_Stage = length(unique(Stage))
+cols_3 = c("Before" = "#4daf4a", "After" = "#377eb8")
+col_Stage = cols_3[Stage]
+
+Subject = rep("21", length(rownames(y2taxoral)))
+is_x = grepl("22", rownames(y2taxoral))
+Subject[is_x] = "22"
+is_x = grepl("23", rownames(y2taxoral))
+Subject[is_x] = "23"
+is_x = grepl("24", rownames(y2taxoral))
+Subject[is_x] = "24"
+is_x = grepl("25", rownames(y2taxoral))
+Subject[is_x] = "25"
+is_x = grepl("26", rownames(y2taxoral))
+Subject[is_x] = "26"
+is_x = grepl("27", rownames(y2taxoral))
+Subject[is_x] = "27"
+is_x = grepl("29", rownames(y2taxoral))
+Subject[is_x] = "29"
+is_x = grepl("30", rownames(y2taxoral))
+Subject[is_x] = "30"
+is_x = grepl("31", rownames(y2taxoral))
+Subject[is_x] = "31"
+is_x = grepl("32", rownames(y2taxoral))
+Subject[is_x] = "32"
+is_x = grepl("33", rownames(y2taxoral))
+Subject[is_x] = "33"
+is_x = grepl("34", rownames(y2taxoral))
+Subject[is_x] = "34"
+is_x = grepl("35", rownames(y2taxoral))
+Subject[is_x] = "35"
+is_x = grepl("36", rownames(y2taxoral))
+Subject[is_x] = "36"
+is_x = grepl("37", rownames(y2taxoral))
+Subject[is_x] = "37"
+is_x = grepl("38", rownames(y2taxoral))
+Subject[is_x] = "38"
+Subject = factor(Subject)
+n_Subject = length(unique(Subject))
+cols_19 = colorspace::rainbow_hcl(n_Subject, c = 30, l = 50)
+col_Subject = cols_19[Subject]
+labels_colors(y2ocd) = col_Subject[order.dendrogram(y2ocd)]
+
+svg("figures/y2_oral_dendrogram.svg", width = 15, height = 10)
+y2ocd = assign_values_to_leaves_edgePar(y2ocd, 
+                                        value = col_Subject[order.dendrogram(y2ocd)], edgePar = "col") %>% 
+  set("branches_lwd", 4)
+layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
+layout(mat = layout.matrix, heights = c(6, 1))
+plot(y2ocd)
+colored_bars(cbind(col_Ethnicity[order.dendrogram(y2ocd)], 
+                   col_Stage[order.dendrogram(y2ocd)]), 
+             y2ocd)
+dev.off()
+```
