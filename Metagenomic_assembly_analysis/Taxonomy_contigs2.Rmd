@@ -16,6 +16,8 @@ library(tidyverse)
 library(vegan)
 library(fdrtool)
 library(dendextend)
+library(ggtext)
+library(cowplot)
 ```
 
 ## Import data
@@ -317,6 +319,7 @@ adonis2(jacc_oral_white ~ `Study period`,
         permutations = 4999)
 ```
 
+
 ## Taxonomic abundance
 
 Wilcoxon Rank Sum tests (base R) were used to assess if self-reported Ethnicity is associated with the abundance of individual species identified at the rank of genus or above. P-values are corrected using fdrtool (v.1.2.16).
@@ -424,7 +427,7 @@ is_x = grepl("Caucasian", y1taxf$Ethnicity)
 Ethnicity[is_x] = "White"
 Ethnicity = factor(Ethnicity)
 n_Ethnicity = length(unique(Ethnicity))
-cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+cols_2 = c(Black = "#f5c4ca", White = "#87ceeb")
 col_Ethnicity = cols_2[Ethnicity]
 
 Stage = rep("Before", length(rownames(y1taxf)))
@@ -434,7 +437,7 @@ is_x = grepl("after", y1taxf$stage)
 Stage[is_x] = "After"
 Stage = factor(Stage)
 n_Stage = length(unique(Stage))
-cols_3 = c("Before" = "#4daf4a", "During" = "#e41a1c", "After" = "#377eb8")
+cols_3 = c(After = "#377eb8", Before = "#4daf4a", During = "#e41a1c")
 col_Stage = cols_3[Stage]
 
 Subject = rep("1", length(rownames(y1taxfecal)))
@@ -489,9 +492,8 @@ y1fcd = assign_values_to_leaves_edgePar(y1fcd,
 layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
 layout(mat = layout.matrix, heights = c(6, 1))
 plot(y1fcd)
-colored_bars(cbind(col_Ethnicity[order.dendrogram(y1fcd)], 
-                   col_Stage[order.dendrogram(y1fcd)]), 
-             y1fcd)
+colored_bars(cbind(col_Ethnicity, 
+                   col_Stage), y1fcd)
 dev.off()
 ```
 
@@ -508,7 +510,7 @@ is_x = grepl("Caucasian", y1taxo$Ethnicity)
 Ethnicity[is_x] = "White"
 Ethnicity = factor(Ethnicity)
 n_Ethnicity = length(unique(Ethnicity))
-cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+cols_2 = c(Black = "#f5c4ca", White = "#87ceeb")
 col_Ethnicity = cols_2[Ethnicity]
 
 Stage = rep("Before", length(rownames(y1taxo)))
@@ -516,7 +518,7 @@ is_x = grepl("after", y1taxo$stage)
 Stage[is_x] = "After"
 Stage = factor(Stage)
 n_Stage = length(unique(Stage))
-cols_3 = c("Before" = "#4daf4a", "After" = "#377eb8")
+cols_3 = c(After = "#377eb8", Before = "#4daf4a")
 col_Stage = cols_3[Stage]
 
 Subject = rep("1", length(rownames(y1taxoral)))
@@ -569,8 +571,8 @@ y1ocd = assign_values_to_leaves_edgePar(y1ocd,
 layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
 layout(mat = layout.matrix, heights = c(6, 1))
 plot(y1ocd)
-colored_bars(cbind(col_Ethnicity[order.dendrogram(y1ocd)], 
-                   col_Stage[order.dendrogram(y1ocd)]), 
+colored_bars(cbind(col_Ethnicity, 
+                   col_Stage), 
              y1ocd)
 dev.off()
 ```
@@ -585,17 +587,17 @@ is_x = grepl("Caucasian", y1vir$Ethnicity)
 Ethnicity[is_x] = "White"
 Ethnicity = factor(Ethnicity)
 n_Ethnicity = length(unique(Ethnicity))
-cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+cols_2 = c(Black = "#f5c4ca", White = "#87ceeb")
 col_Ethnicity = cols_2[Ethnicity]
 
 Stage = rep("Before", length(rownames(y1vir)))
-is_x = grepl("during", y1vir$Stage)
+is_x = grepl("During", y1vir$Stage)
 Stage[is_x] = "During"
-is_x = grepl("after", y1vir$Stage)
+is_x = grepl("After", y1vir$Stage)
 Stage[is_x] = "After"
 Stage = factor(Stage)
 n_Stage = length(unique(Stage))
-cols_3 = c("Before" = "#4daf4a", "During" = "#e41a1c", "After" = "#377eb8")
+cols_3 = c("After" = "#377eb8", "Before" = "#4daf4a", "During" = "#e41a1c")
 col_Stage = cols_3[Stage]
 
 Subject = rep("1", length(rownames(y1virfecal)))
@@ -648,8 +650,8 @@ y1vcd = assign_values_to_leaves_edgePar(y1vcd,
 layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
 layout(mat = layout.matrix, heights = c(6, 1))
 plot(y1vcd)
-colored_bars(cbind(col_Ethnicity[order.dendrogram(y1vcd)], 
-                   col_Stage[order.dendrogram(y1vcd)]), 
+colored_bars(cbind(col_Ethnicity, 
+                   col_Stage), 
              y1vcd)
 dev.off()
 ```
@@ -667,7 +669,7 @@ is_x = grepl("White", y2taxf$Ethnicity)
 Ethnicity[is_x] = "White"
 Ethnicity = factor(Ethnicity)
 n_Ethnicity = length(unique(Ethnicity))
-cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+cols_2 = c(Black = "#f5c4ca", White = "#87ceeb")
 col_Ethnicity = cols_2[Ethnicity]
 
 Stage = rep("Before", length(rownames(y2taxf)))
@@ -677,7 +679,7 @@ is_x = grepl("After", y2taxf$`Study period`)
 Stage[is_x] = "After"
 Stage = factor(Stage)
 n_Stage = length(unique(Stage))
-cols_3 = c("Before" = "#4daf4a", "During" = "#e41a1c", "After" = "#377eb8")
+cols_3 = c("After" = "#377eb8", "Before" = "#4daf4a", "During" = "#e41a1c")
 col_Stage = cols_3[Stage]
 
 Subject = rep("21", length(rownames(y2taxfecal)))
@@ -726,8 +728,8 @@ y2fcd = assign_values_to_leaves_edgePar(y2fcd,
 layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
 layout(mat = layout.matrix, heights = c(6, 1))
 plot(y2fcd)
-colored_bars(cbind(col_Ethnicity[order.dendrogram(y2fcd)], 
-                   col_Stage[order.dendrogram(y2fcd)]), 
+colored_bars(cbind(col_Ethnicity, 
+                   col_Stage), 
              y2fcd)
 dev.off()
 ```
@@ -746,7 +748,7 @@ is_x = grepl("White", y2taxo$Ethnicity)
 Ethnicity[is_x] = "White"
 Ethnicity = factor(Ethnicity)
 n_Ethnicity = length(unique(Ethnicity))
-cols_2 = c(White = "#87ceeb", Black = "#f5c4ca")
+cols_2 = c(Black = "#f5c4ca", White = "#87ceeb")
 col_Ethnicity = cols_2[Ethnicity]
 
 Stage = rep("Before", length(rownames(y2taxo)))
@@ -754,7 +756,7 @@ is_x = grepl("After", y2taxo$`Study period`)
 Stage[is_x] = "After"
 Stage = factor(Stage)
 n_Stage = length(unique(Stage))
-cols_3 = c("Before" = "#4daf4a", "After" = "#377eb8")
+cols_3 = c("After" = "#377eb8", "Before" = "#4daf4a")
 col_Stage = cols_3[Stage]
 
 Subject = rep("21", length(rownames(y2taxoral)))
@@ -803,8 +805,227 @@ y2ocd = assign_values_to_leaves_edgePar(y2ocd,
 layout.matrix = matrix(c(1,2), nrow = 2, ncol = 1)
 layout(mat = layout.matrix, heights = c(6, 1))
 plot(y2ocd)
-colored_bars(cbind(col_Ethnicity[order.dendrogram(y2ocd)], 
-                   col_Stage[order.dendrogram(y2ocd)]), 
+colored_bars(cbind(col_Ethnicity, 
+                   col_Stage), 
              y2ocd)
 dev.off()
+```
+## NMDS plots
+
+### Cohort 1 gut taxonomy
+```{r nmds_y1ftax}
+bray_fecal_y1 = vegdist(y1taxfecal, method = "bray")
+
+y1taxf = y1taxf %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White"))
+
+mds_bray_f_y1<-metaMDS(bray_fecal_y1, k=2, trymax=999)
+mds_bray_f_y1_points<-mds_bray_f_y1$points
+mds_bray_f_y1_points2<-merge(x=mds_bray_f_y1_points, y = y1taxf, 
+                                  by.x = "row.names", 
+                             by.y = "sample.name")
+
+brayfy1 <- ggplot(mds_bray_f_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.title = element_blank(),
+        legend.text = element_text(size = rel(1.2)),
+        legend.position = c(0.1, 0.1)) +
+  stat_ellipse(data = mds_bray_f_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 6.6% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.134",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfy1
+```
+### Cohort 2 gut taxonomy
+```{r nmds_y2ftax}
+bray_fecal_y2 = vegdist(relab_fecal_filtered[,2:9266], method = "bray")
+
+y2taxf = relab_fecal_filtered %>% 
+  dplyr::select(9267:9291)
+
+mds_bray_f_y2<-metaMDS(bray_fecal_y2, k=2, trymax=999)
+mds_bray_f_y2_points<-mds_bray_f_y2$points
+mds_bray_f_y2_points2<-merge(x=mds_bray_f_y2_points, y = y2taxf, 
+                                  by.x = "row.names", 
+                             by.y = "row.names")
+
+brayfy2 <- ggplot(mds_bray_f_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 5.5% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.124",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfy2
+```
+
+### Cohort 1 oral taxonomy
+```{r nmds_y1otax}
+bray_oral_y1 = vegdist(y1taxoral, method = "bray")
+
+y1taxo = y1taxo %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White"))
+
+mds_bray_o_y1<-metaMDS(bray_oral_y1, k=2, trymax=999)
+mds_bray_o_y1_points<-mds_bray_o_y1$points
+mds_bray_o_y1_points2<-merge(x=mds_bray_o_y1_points, y = y1taxo, 
+                                  by.x = "row.names", 
+                             by.y = "sample.name")
+
+brayoy1 <- ggplot(mds_bray_o_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 10.4% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.100",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayoy1
+```
+### Cohort 2 oral taxonomy
+```{r nmds_y2otax}
+bray_oral_y2 = vegdist(relab_oral_filtered[,2:8063], method = "bray")
+
+y2taxf = relab_oral_filtered %>% 
+  dplyr::select(8064:8088)
+
+mds_bray_o_y2<-metaMDS(bray_oral_y2, k=2, trymax=999)
+mds_bray_o_y2_points<-mds_bray_o_y2$points
+mds_bray_o_y2_points2<-merge(x=mds_bray_o_y2_points, y = y2taxo, 
+                                  by.x = "row.names", 
+                             by.y = "row.names")
+
+brayoy2 <- ggplot(mds_bray_o_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> = 0.022, 
+           r<sup>2</sup> = 5.5% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.149",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayoy2
+```
+### Cohort 1 gut virome taxonomy
+```{r nmds_y1fvtax}
+vir_tax = read_tsv("Virome_files_y1/virome.txt")
+
+bray_fecalv_y1 = vegdist(vir_tax[,5:4430], method = "bray")
+
+y1taxfv = vir_tax %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White"))
+
+mds_bray_fv_y1<-metaMDS(bray_fecalv_y1, k=2, trymax=999)
+mds_bray_fv_y1_points<-mds_bray_fv_y1$points
+mds_bray_fv_y1_points2<-merge(x=mds_bray_fv_y1_points, 
+                              y = y1taxfv, 
+                              by.x = "row.names", 
+                              by.y = "row.names")
+
+brayfvy1 <- ggplot(mds_bray_fv_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_fv_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 5.2% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.160",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfvy1
 ```
