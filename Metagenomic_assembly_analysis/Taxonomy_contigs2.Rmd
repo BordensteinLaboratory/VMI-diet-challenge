@@ -26,7 +26,7 @@ Taxids with taxonomy are imported. Relative abundances of each taxid for individ
 
 ```{r import_taxonomy, echo = F}
 taxid = read_tsv("taxonomy_files/tax.txt") %>% 
-  select(-contig) %>% 
+  dplyr::select(-contig) %>% 
   distinct()
 write_csv(taxid, "tables/unique_taxid.csv")
 ra_files = list.files(path = "taxonomy_files", pattern = "run", full.names = T)
@@ -90,7 +90,7 @@ The relative abundance table is transposed (with species names but no taxids), c
 ```{r ra_taxabund}
 rel_abund_tax_t = rel_abund %>% 
   filter(Kingdom == "Bacteria") %>% 
-  select(-164) %>% 
+  dplyr::select(-164) %>% 
   unite("Sci_name", Genus:Species, na.rm = F) %>% 
   pivot_longer(cols = 1:162, names_to = "file_prefix", values_to = "relative_abundance") %>%
   filter(Sci_name != "NA_NA") %>% 
@@ -103,6 +103,7 @@ rel_abund_tax_t = rel_abund %>%
 
 rel_abund_tax_fecal = rel_abund_tax_t %>% 
   filter(fecal_use == 1) 
+write.csv(rel_abund_tax_fecal, "relative_abundance_values_fecal.csv")
 rel_abund_tax_fecal_ethnicity = rel_abund_tax_fecal %>% 
   group_by(Ethnicity) %>% 
   summarize_if(is.numeric, mean, na.rm = T)
@@ -128,6 +129,7 @@ write_csv(rel_abund_tax_fecal_after_ethnicity, "tables/relab_fecal_after.csv")
 
 rel_abund_tax_oral = rel_abund_tax_t %>% 
   filter(oral_use == 1)
+write.csv(rel_abund_tax_oral, "relative_abundance_values_oral.csv")
 rel_abund_tax_oral_ethnicity = rel_abund_tax_oral %>% 
   group_by(Ethnicity) %>% 
   summarize_if(is.numeric, mean, na.rm = T)
@@ -181,7 +183,7 @@ jacc_fecal_after = vegdist(relab_fecal_filtered_after[,2:9266],
                            method = "jaccard") 
 
 bray_oral = vegdist(relab_oral_filtered[,2:8063], method = "bray")
-jacc_oral = vegdist(relab_oral_filtered[,2:272], method = "jaccard")
+jacc_oral = vegdist(relab_oral_filtered[,2:8063], method = "jaccard")
 bray_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "bray")
 bray_oral_white = vegdist(relab_oral_filtered_white[,2:8063], method = "bray")
 jacc_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "jaccard")
@@ -383,6 +385,475 @@ taxa_Ethnicity_corrected = bind_cols(taxa_Ethnicity_nona,
 write.csv(taxa_Ethnicity_corrected, "tables/taxa_oral_wilcox_Ethnicity_corrected_y2.csv")
 ```
 
+### Heritable taxa
+
+```{r heritable}
+fecal_heri = read.csv("relative_abundance_heritable_fecal.csv")
+fecal_heri_before = fecal_heri %>% 
+  filter(Study.period == "Before")
+fecal_heri_during = fecal_heri %>% 
+  filter(Study.period == "During")
+fecal_heri_after = fecal_heri %>% 
+  filter(Study.period == "After")
+oral_heri = read.csv("relative_abundance_heritable_oral.csv")
+oral_heri_before = oral_heri %>% 
+  filter(Study.period == "Before")
+oral_heri_after = oral_heri %>% 
+  filter(Study.period == "After")
+
+veil_fecal_all = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+veil_fecal_all
+
+veil_fecal_before = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+veil_fecal_before
+
+veil_fecal_during = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+veil_fecal_during
+
+veil_fecal_after = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+veil_fecal_after
+
+veil_oral_all = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+veil_oral_all
+
+veil_oral_before = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+veil_oral_before
+
+veil_oral_after = wilcox.test(Veillonella ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+veil_oral_after
+
+chris_fecal_all = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+chris_fecal_all
+
+chris_fecal_before = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+chris_fecal_before
+
+chris_fecal_during = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+chris_fecal_during
+
+chris_fecal_after = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+chris_fecal_after
+
+chris_oral_all = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+chris_oral_all
+
+chris_oral_before = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+chris_oral_before
+
+chris_oral_after = wilcox.test(Christensenellaceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+chris_oral_after
+
+corio_fecal_all = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+corio_fecal_all
+
+corio_fecal_before = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+corio_fecal_before
+
+corio_fecal_during = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+corio_fecal_during
+
+corio_fecal_after = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+corio_fecal_after
+
+corio_oral_all = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+corio_oral_all
+
+corio_oral_before = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+corio_oral_before
+
+corio_oral_after = wilcox.test(Coriobacteriaceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+corio_oral_after
+
+odori_fecal_all = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+odori_fecal_all
+
+odori_fecal_before = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+odori_fecal_before
+
+odori_fecal_during = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+odori_fecal_during
+
+odori_fecal_after = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+odori_fecal_after
+
+odori_oral_all = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+odori_oral_all
+
+odori_oral_before = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+odori_oral_before
+
+odori_oral_after = wilcox.test(Odoribacteraceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+odori_oral_after
+
+pepto_fecal_all = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+pepto_fecal_all
+
+pepto_fecal_before = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+pepto_fecal_before
+
+pepto_fecal_during = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+pepto_fecal_during
+
+pepto_fecal_after = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+pepto_fecal_after
+
+pepto_oral_all = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+pepto_oral_all
+
+pepto_oral_before = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+pepto_oral_before
+
+pepto_oral_after = wilcox.test(Peptococcaceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+pepto_oral_after
+
+riken_fecal_all = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+riken_fecal_all
+
+riken_fecal_before = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+riken_fecal_before
+
+riken_fecal_during = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+riken_fecal_during
+
+riken_fecal_after = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+riken_fecal_after
+
+riken_oral_all = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+riken_oral_all
+
+riken_oral_before = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+riken_oral_before
+
+riken_oral_after = wilcox.test(Rikenellaceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+riken_oral_after
+
+verru_fecal_all = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+verru_fecal_all
+
+verru_fecal_before = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+verru_fecal_before
+
+verru_fecal_during = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+verru_fecal_during
+
+verru_fecal_after = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+verru_fecal_after
+
+verru_oral_all = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+verru_oral_all
+
+verru_oral_before = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+verru_oral_before
+
+verru_oral_after = wilcox.test(Verrucomicrobiaceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+verru_oral_after
+
+victi_fecal_all = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+victi_fecal_all
+
+victi_fecal_before = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+victi_fecal_before
+
+victi_fecal_during = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+victi_fecal_during
+
+victi_fecal_after = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+victi_fecal_after
+
+victi_oral_all = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+victi_oral_all
+
+victi_oral_before = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+victi_oral_before
+
+victi_oral_after = wilcox.test(Victivallaceae ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+victi_oral_after
+
+clost_fecal_all = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = fecal_heri,
+                  paired = F, exact = F)
+clost_fecal_all
+
+clost_fecal_before = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = fecal_heri_before,
+                  paired = F, exact = F)
+clost_fecal_before
+
+clost_fecal_during = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = fecal_heri_during,
+                  paired = F, exact = F)
+clost_fecal_during
+
+clost_fecal_after = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = fecal_heri_after,
+                  paired = F, exact = F)
+clost_fecal_after
+
+clost_oral_all = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = oral_heri,
+                  paired = F, exact = F)
+clost_oral_all
+
+clost_oral_before = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = oral_heri_before,
+                  paired = F, exact = F)
+clost_oral_before
+
+clost_oral_after = wilcox.test(Clostridiales ~ Ethnicity, 
+                  data = oral_heri_after,
+                  paired = F, exact = F)
+clost_oral_after
+
+fecal_all_p = c(veil_fecal_all$p.value, chris_fecal_all$p.value,
+                corio_fecal_all$p.value, odori_fecal_all$p.value,
+                pepto_fecal_all$p.value, riken_fecal_all$p.value,
+                verru_fecal_all$p.value, victi_fecal_all$p.value,
+                clost_fecal_all$p.value)
+
+fecal_all_padj = p.adjust(fecal_all_p, method = "fdr")
+fecal_all_padj
+
+fecal_before_p = c(veil_fecal_before$p.value, chris_fecal_before$p.value,
+                corio_fecal_before$p.value, odori_fecal_before$p.value,
+                pepto_fecal_before$p.value, riken_fecal_before$p.value,
+                verru_fecal_before$p.value, victi_fecal_before$p.value,
+                clost_fecal_before$p.value)
+
+fecal_before_padj = p.adjust(fecal_before_p, method = "fdr")
+fecal_before_padj
+
+fecal_during_p = c(veil_fecal_during$p.value, chris_fecal_during$p.value,
+                corio_fecal_during$p.value, odori_fecal_during$p.value,
+                pepto_fecal_during$p.value, riken_fecal_during$p.value,
+                verru_fecal_during$p.value, victi_fecal_during$p.value,
+                clost_fecal_during$p.value)
+
+fecal_during_padj = p.adjust(fecal_during_p, method = "fdr")
+fecal_during_padj
+
+fecal_after_p = c(veil_fecal_after$p.value, chris_fecal_after$p.value,
+                corio_fecal_after$p.value, odori_fecal_after$p.value,
+                pepto_fecal_after$p.value, riken_fecal_after$p.value,
+                verru_fecal_after$p.value, victi_fecal_after$p.value,
+                clost_fecal_after$p.value)
+
+fecal_after_padj = p.adjust(fecal_after_p, method = "fdr")
+fecal_after_padj
+
+oral_all_p = c(veil_oral_all$p.value, chris_oral_all$p.value,
+                corio_oral_all$p.value, odori_oral_all$p.value,
+                pepto_oral_all$p.value, riken_oral_all$p.value,
+                verru_oral_all$p.value, victi_oral_all$p.value,
+                clost_oral_all$p.value)
+
+oral_all_padj = p.adjust(oral_all_p, method = "fdr")
+oral_all_padj
+
+oral_before_p = c(veil_oral_before$p.value, chris_oral_before$p.value,
+                corio_oral_before$p.value, odori_oral_before$p.value,
+                pepto_oral_before$p.value, riken_oral_before$p.value,
+                verru_oral_before$p.value, victi_oral_before$p.value,
+                clost_oral_before$p.value)
+
+oral_before_padj = p.adjust(oral_before_p, method = "fdr")
+oral_before_padj
+
+oral_after_p = c(veil_oral_after$p.value, chris_oral_after$p.value,
+                corio_oral_after$p.value, odori_oral_after$p.value,
+                pepto_oral_after$p.value, riken_oral_after$p.value,
+                verru_oral_after$p.value, victi_oral_after$p.value,
+                clost_oral_after$p.value)
+
+oral_after_padj = p.adjust(oral_after_p, method = "fdr")
+oral_after_padj
+
+fecal_all_ethnicity = fecal_heri %>%
+  group_by(Ethnicity) %>% 
+  summarize(across(Veillonella:Clostridiales, ~mean(.)))
+
+fecal_during_ethnicity = fecal_heri_during %>%
+  group_by(Ethnicity) %>% 
+  summarize(across(Veillonella:Clostridiales, ~mean(.)))
+  
+fecal_after_ethnicity = fecal_heri_after %>%
+  group_by(Ethnicity) %>% 
+  summarize(across(Veillonella:Clostridiales, ~mean(.)))
+```
+
+## Alpha Diversity
+
+Alpha diversity was calculated relative abundance tables. Shannon diversity and Shannon-Weaver evenness (Pielou's evenness) were calculated.
+
+```{r alpha_d}
+shannond_fecal = diversity(relab_fecal_filtered[,2:9266], 
+                           index = "shannon")
+shannond_oral = diversity(relab_oral[,2:8063], 
+                          index = "shannon")
+
+shannone_fecal = shannond_fecal/log(specnumber(relab_fecal_filtered[,2:9266]))
+shannone_oral = shannond_oral/log(specnumber(relab_oral[,2:8063]))
+
+fecal_diversity = cbind(relab_fecal_filtered[,1], relab_fecal_filtered[,9267:9291], shannond_fecal, shannone_fecal)
+fecal_diversity$`Study period` = as.factor(fecal_diversity$`Study period`)
+oral_diversity = cbind(relab_oral[,1], relab_oral_filtered[,8064:8088], shannond_oral, shannone_oral)
+oral_diversity$`Study period` = as.factor(oral_diversity$`Study period`)
+```
+
+Non-parametric tests were used to examine differences between self-reported ethnicities and study period (before/during/after) in diversity. 
+```{r alpha_models_fecal}
+div_fecal = wilcox.test(shannond_fecal ~ Ethnicity, 
+                        data = fecal_diversity, 
+                        paired = F, exact = F)
+div_fecal
+
+even_fecal = wilcox.test(shannone_fecal ~ Ethnicity, 
+                          data = fecal_diversity, 
+                        paired = F, exact = F)
+even_fecal
+
+div_fecals = kruskal.test(shannond_fecal ~ `Study period`, 
+                        data = fecal_diversity)
+div_fecals
+
+even_fecals = kruskal.test(shannone_fecal ~ `Study period`, 
+                          data = fecal_diversity)
+even_fecals
+```
+
+```{r alpha_models_oral}
+div_oral = wilcox.test(shannond_oral ~ Ethnicity, 
+                       data = oral_diversity,
+                       paired = F, exact = F)
+div_oral
+
+even_oral = wilcox.test(shannone_oral ~ Ethnicity, 
+                        data = oral_diversity,
+                        paired = F, exact = F)
+even_oral
+
+div_orals = wilcox.test(shannond_oral ~ `Study period`, 
+                       data = oral_diversity,
+                       paired = F, exact = F)
+div_orals
+
+even_orals = wilcox.test(shannone_oral ~ `Study period`, 
+                        data = oral_diversity,
+                        paired = F, exact = F)
+even_orals
+```
+
 ## Dendrogram
 
 Import data and filter into fecal and oral metagenomes.
@@ -576,6 +1047,7 @@ colored_bars(cbind(col_Ethnicity,
              y1ocd)
 dev.off()
 ```
+
 ```{r dendro_y1virus}
 y1virus.dist <- vegdist(y1virfecal, method = "bray", permutations = 999)
 y1virus.clus <- hclust(y1virus.dist, "aver")
@@ -819,7 +1291,10 @@ bray_fecal_y1 = vegdist(y1taxfecal, method = "bray")
 y1taxf = y1taxf %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
-    Ethnicity == "Caucasian" ~ "White"))
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  mutate(stage = case_when(stage == "before" ~ "Before",
+                           stage == "during" ~ "During",
+                           stage == "after" ~ "After"))
 
 mds_bray_f_y1<-metaMDS(bray_fecal_y1, k=2, trymax=999)
 mds_bray_f_y1_points<-mds_bray_f_y1$points
@@ -838,7 +1313,8 @@ brayfy1 <- ggplot(mds_bray_f_y1_points2,
         axis.title.y=element_blank(),
         plot.title = element_blank(),
         legend.title = element_blank(),
-        legend.text = element_text(size = rel(1.2)),
+        legend.text = element_text(size = rel(1)),
+        legend.background = element_rect(fill = NA),
         legend.position = c(0.1, 0.1)) +
   stat_ellipse(data = mds_bray_f_y1_points2, 
                aes(x = MDS1, y = MDS2, 
@@ -856,6 +1332,111 @@ brayfy1 <- ggplot(mds_bray_f_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfy1
+
+
+brayfy1s <- ggplot(mds_bray_f_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.title = element_blank(),
+        legend.text = element_text(size = rel(1)),
+        legend.background = element_rect(fill = NA),
+        legend.position = c(0.1, 0.1)) +
+  stat_ellipse(data = mds_bray_f_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 0.8%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.130",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfy1s
+
+jacc_fecal_y1 = vegdist(y1taxfecal, method = "jaccard")
+
+mds_jacc_f_y1<-metaMDS(jacc_fecal_y1, k=2, trymax=999)
+mds_jacc_f_y1_points<-mds_jacc_f_y1$points
+mds_jacc_f_y1_points2<-merge(x=mds_jacc_f_y1_points, y = y1taxf, 
+                                  by.x = "row.names", 
+                             by.y = "sample.name")
+
+jaccfy1 <- ggplot(mds_jacc_f_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.title = element_blank(),
+        legend.text = element_text(size = rel(1)),
+        legend.background = element_rect(fill = NA),
+        legend.position = c(0.1, 0.1)) +
+  stat_ellipse(data = mds_jacc_f_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 6.6% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.134",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccfy1
+
+jaccfy1s <- ggplot(mds_jacc_f_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.title = element_blank(),
+        legend.text = element_text(size = rel(1)),
+        legend.background = element_rect(fill = NA),
+        legend.position = c(0.1, 0.1)) +
+  stat_ellipse(data = mds_jacc_f_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.820, 
+           r<sup>2</sup> = 1.6%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.130",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccfy1s
+
 ```
 ### Cohort 2 gut taxonomy
 ```{r nmds_y2ftax}
@@ -897,6 +1478,100 @@ brayfy2 <- ggplot(mds_bray_f_y2_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfy2
+
+brayfy2s <- ggplot(mds_bray_f_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+       legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.973, 
+           r<sup>2</sup> = 0.08%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.124",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfy2s
+
+jacc_fecal_y2 = vegdist(relab_fecal_filtered[,2:9266], method = "jacc")
+
+mds_jacc_f_y2<-metaMDS(jacc_fecal_y2, k=2, trymax=999)
+mds_jacc_f_y2_points<-mds_jacc_f_y2$points
+mds_jacc_f_y2_points2<-merge(x=mds_jacc_f_y2_points, y = y2taxf, 
+                                  by.x = "row.names", 
+                             by.y = "row.names")
+
+jaccfy2 <- ggplot(mds_jacc_f_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_jacc_f_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 5.2% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.162",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccfy2
+
+jaccfy2s <- ggplot(mds_jacc_f_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+       legend.position = "none") +
+  stat_ellipse(data = mds_jacc_f_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.979, 
+           r<sup>2</sup> = 0.09%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.162",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccfy2s
 ```
 
 ### Cohort 1 oral taxonomy
@@ -906,7 +1581,9 @@ bray_oral_y1 = vegdist(y1taxoral, method = "bray")
 y1taxo = y1taxo %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
-    Ethnicity == "Caucasian" ~ "White"))
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  mutate(stage = case_when(stage == "before" ~ "Before",
+                           stage == "after" ~ "After"))
 
 mds_bray_o_y1<-metaMDS(bray_oral_y1, k=2, trymax=999)
 mds_bray_o_y1_points<-mds_bray_o_y1$points
@@ -941,6 +1618,100 @@ brayoy1 <- ggplot(mds_bray_o_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayoy1
+
+brayoy1s <- ggplot(mds_bray_o_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 0.8%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.100",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayoy1s
+
+jacc_oral_y1 = vegdist(y1taxoral, method = "jacc")
+
+mds_jacc_o_y1<-metaMDS(jacc_oral_y1, k=2, trymax=999)
+mds_jacc_o_y1_points<-mds_jacc_o_y1$points
+mds_jacc_o_y1_points2<-merge(x=mds_jacc_o_y1_points, y = y1taxo, 
+                                  by.x = "row.names", 
+                             by.y = "sample.name")
+
+jaccoy1 <- ggplot(mds_jacc_o_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_jacc_o_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 3.5% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.150",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccoy1
+
+jaccoy1s <- ggplot(mds_jacc_o_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_jacc_o_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 1.8%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.150",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccoy1s
 ```
 ### Cohort 2 oral taxonomy
 ```{r nmds_y2otax}
@@ -973,8 +1744,8 @@ brayoy2 <- ggplot(mds_bray_o_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.022, 
-           r<sup>2</sup> = 5.5% </b>", 
+           label = "<b><i>p</i> = 0.019, 
+           r<sup>2</sup> = 6.5% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -982,6 +1753,100 @@ brayoy2 <- ggplot(mds_bray_o_y2_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayoy2
+
+brayoy2s <- ggplot(mds_bray_o_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.951, 
+           r<sup>2</sup> = 1.3%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.149",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayoy2s
+
+jacc_oral_y2 = vegdist(relab_oral_filtered[,2:8063], method = "jacc")
+
+mds_jacc_o_y2<-metaMDS(jacc_oral_y2, k=2, trymax=999)
+mds_jacc_o_y2_points<-mds_jacc_o_y2$points
+mds_jacc_o_y2_points2<-merge(x=mds_jacc_o_y2_points, y = y2taxo, 
+                                  by.x = "row.names", 
+                             by.y = "row.names")
+
+jaccoy2 <- ggplot(mds_jacc_o_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_jacc_o_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> = 0.020, 
+           r<sup>2</sup> = 6.5%</b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.153",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccoy2
+
+jaccoy2s <- ggplot(mds_jacc_o_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_jacc_o_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.959, 
+           r<sup>2</sup> = 1.3%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.153",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccoy2s
 ```
 ### Cohort 1 gut virome taxonomy
 ```{r nmds_y1fvtax}
@@ -1028,4 +1893,100 @@ brayfvy1 <- ggplot(mds_bray_fv_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfvy1
+
+brayfvy1s <- ggplot(mds_bray_fv_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+       legend.position = "none") +
+  stat_ellipse(data = mds_bray_fv_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 1.1%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.160",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfvy1s
+
+jacc_fecalv_y1 = vegdist(vir_tax[,5:4430], method = "jacc")
+
+
+mds_jacc_fv_y1<-metaMDS(jacc_fecalv_y1, k=2, trymax=999)
+mds_jacc_fv_y1_points<-mds_jacc_fv_y1$points
+mds_jacc_fv_y1_points2<-merge(x=mds_jacc_fv_y1_points, 
+                              y = y1taxfv, 
+                              by.x = "row.names", 
+                              by.y = "row.names")
+
+jaccfvy1 <- ggplot(mds_jacc_fv_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Ethnicity)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_jacc_fv_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Ethnicity), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 4.8% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.200",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccfvy1
+
+jaccfvy1s <- ggplot(mds_jacc_fv_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+       legend.position = "none") +
+  stat_ellipse(data = mds_jacc_fv_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 1.3%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.200",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+jaccfvy1s
 ```

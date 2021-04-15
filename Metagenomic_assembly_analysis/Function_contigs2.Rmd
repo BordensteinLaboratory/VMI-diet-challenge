@@ -49,10 +49,30 @@ metadata2 = metadata %>%
                                Ethnicity == "Caucasian" ~ "White"))
 ```
 
+### Chi-square test of antibiotic/contraceptive use
+
+We used chi-square tests to examine if antibiotic use or contraceptive use were associated with ethnicity.
+```{r chis}
+metadata_anti = read_tsv("year2_contingency.txt") %>% 
+  column_to_rownames(var = "X1") %>% 
+  dplyr::select(1:2)
+
+metadata_contra = read_tsv("year2_contingency.txt") %>% 
+  column_to_rownames(var = "X1") %>% 
+  dplyr::select(3:4)
+
+anti = chisq.test(metadata_anti)
+anti
+
+contra = chisq.test(metadata_contra)
+contra
+```
+
 ### Filter data
 
 The relative abundance table is transposed and file names are cleaned up. It is then joined with the metadata for PERMANOVA analyses. Individual tables for fecal and oral samples for each study period and for each ethnicity are created.
 ```{r ra_perm}
+rel_abund_cog = read_tsv("tables/rel_abund_cog_y2_collapsed_categories.txt")
 rel_abund_cog_t = rel_abund_cog %>% 
   pivot_longer(cols = 2:163, names_to = "file_prefix", 
                values_to = "abundance") %>% 
@@ -93,42 +113,42 @@ relab_cog_oral_filtered_after = relab_cog_oral_filtered %>%
 Bray-Curtis and Jaccard distance matrices are created using vegan (v2.5-7). Matrices are constructed for all oral samples, all fecal samples, and oral and fecal samples broken down by ethnicity and study stage.
 
 ```{r beta_metrics, error=FALSE}
-bray_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:121], method = "bray")
-jacc_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:121], method = "jaccard")
-bray_cog_fecal_black = vegdist(relab_cog_fecal_filtered_black[,2:121], 
+bray_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:25], method = "bray")
+jacc_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:25], method = "jaccard")
+bray_cog_fecal_black = vegdist(relab_cog_fecal_filtered_black[,2:25], 
                            method = "bray")
-bray_cog_fecal_white = vegdist(relab_cog_fecal_filtered_white[,2:121], 
+bray_cog_fecal_white = vegdist(relab_cog_fecal_filtered_white[,2:25], 
                            method = "bray")
-jacc_cog_fecal_black = vegdist(relab_cog_fecal_filtered_black[,2:121], 
+jacc_cog_fecal_black = vegdist(relab_cog_fecal_filtered_black[,2:25], 
                            method = "jaccard")
-jacc_cog_fecal_white = vegdist(relab_cog_fecal_filtered_white[,2:121], 
+jacc_cog_fecal_white = vegdist(relab_cog_fecal_filtered_white[,2:25], 
                            method = "jaccard")
-bray_cog_fecal_before = vegdist(relab_cog_fecal_filtered_before[,2:121], 
+bray_cog_fecal_before = vegdist(relab_cog_fecal_filtered_before[,2:25], 
                            method = "jaccard")
-bray_cog_fecal_during = vegdist(relab_cog_fecal_filtered_during[,2:121], 
+bray_cog_fecal_during = vegdist(relab_cog_fecal_filtered_during[,2:25], 
                            method = "jaccard")
-bray_cog_fecal_after = vegdist(relab_cog_fecal_filtered_after[,2:121], 
+bray_cog_fecal_after = vegdist(relab_cog_fecal_filtered_after[,2:25], 
                            method = "jaccard")
-jacc_cog_fecal_before = vegdist(relab_cog_fecal_filtered_before[,2:121], 
+jacc_cog_fecal_before = vegdist(relab_cog_fecal_filtered_before[,2:25], 
                            method = "jaccard")
-jacc_cog_fecal_during = vegdist(relab_cog_fecal_filtered_during[,2:121], 
+jacc_cog_fecal_during = vegdist(relab_cog_fecal_filtered_during[,2:25], 
                            method = "jaccard")
-jacc_cog_fecal_after = vegdist(relab_cog_fecal_filtered_after[,2:121], 
+jacc_cog_fecal_after = vegdist(relab_cog_fecal_filtered_after[,2:25], 
                            method = "jaccard") 
 
-bray_cog_oral = vegdist(relab_cog_oral_filtered[,2:121], method = "bray")
-jacc_cog_oral = vegdist(relab_cog_oral_filtered[,2:121], method = "jaccard")
-bray_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:121], method = "bray")
-bray_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:121], method = "bray")
-jacc_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:121], method = "jaccard")
-jacc_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:121], method = "jaccard")
-bray_cog_oral_before = vegdist(relab_cog_oral_filtered_before[,2:121], 
+bray_cog_oral = vegdist(relab_cog_oral_filtered[,2:25], method = "bray")
+jacc_cog_oral = vegdist(relab_cog_oral_filtered[,2:25], method = "jaccard")
+bray_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:25], method = "bray")
+bray_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:25], method = "bray")
+jacc_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:25], method = "jaccard")
+jacc_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:25], method = "jaccard")
+bray_cog_oral_before = vegdist(relab_cog_oral_filtered_before[,2:25], 
                            method = "jaccard")
-bray_cog_oral_after = vegdist(relab_cog_oral_filtered_after[,2:121], 
+bray_cog_oral_after = vegdist(relab_cog_oral_filtered_after[,2:25], 
                           method = "jaccard")
-jacc_cog_oral_before = vegdist(relab_cog_oral_filtered_before[,2:121], 
+jacc_cog_oral_before = vegdist(relab_cog_oral_filtered_before[,2:25], 
                            method = "jaccard")
-jacc_cog_oral_after = vegdist(relab_cog_oral_filtered_after[,2:121], 
+jacc_cog_oral_after = vegdist(relab_cog_oral_filtered_after[,2:25], 
                           method = "jaccard")
 ```
 
@@ -254,6 +274,201 @@ adonis2(jacc_cog_oral_white ~ `Study period`,
         data = relab_cog_oral_filtered_white, 
         permutations = 4999)
 ```
+
+### COG abundance
+
+Wilcoxon Rank Sum tests (base R) were used to assess if self-reported Ethnicity is associated with the abundance of individual COG categories. P-values are corrected using fdrtool (v.1.2.16).
+
+```{r cog_models_fecal}
+Ethnicity_estimatematrix = mat.or.vec(24,2)
+Ethnicity_pvaluematrix = mat.or.vec(24,2)
+
+relab_cog_fecal_filtered = as.data.frame(relab_cog_fecal_filtered)
+
+relab_cog_ethnicity = relab_cog_fecal_filtered %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(A:X, ~mean(.)))
+relab_cog_ethnicity_t = as.data.frame(t(relab_cog_ethnicity))
+names(relab_cog_ethnicity_t) <- relab_cog_ethnicity_t[1,]
+relab_cog_ethnicity_t = relab_cog_ethnicity_t[-1,]
+
+for(i in 2:25) {
+  variable = relab_cog_fecal_filtered[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_cog_fecal_filtered,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_cog_fecal_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_cog_fecal_filtered)[i]
+}
+
+
+cog_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_cog_ethnicity_t[,1:2]))
+write.csv(cog_Ethnicity, "tables/cog_fecal_wilcox_Ethnicity_y2.csv")
+cog_Ethnicity_nona = filter(cog_Ethnicity, cog_Ethnicity[,3] != "NaN") 
+cog_Ethnicity_nona[,3] = as.numeric(as.character(cog_Ethnicity_nona[,3]))
+cog_Ethnicity_corrected = bind_cols(cog_Ethnicity_nona, 
+                               as.data.frame(fdrtool(cog_Ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(cog_Ethnicity_corrected, "tables/cog_fecal_wilcox_Ethnicity_corrected_y2.csv")
+```
+
+```{r cog_models_fecal_before}
+Ethnicity_estimatematrix = mat.or.vec(24,2)
+Ethnicity_pvaluematrix = mat.or.vec(24,2)
+
+relab_cog_fecal_filtered_before = as.data.frame(relab_cog_fecal_filtered_before)
+
+relab_cog_ethnicity_before = relab_cog_fecal_filtered_before %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(A:X, ~mean(.)))
+relab_cog_ethnicity_before_t = as.data.frame(t(relab_cog_ethnicity_before))
+names(relab_cog_ethnicity_before_t) <- relab_cog_ethnicity_before_t[1,]
+relab_cog_ethnicity_before_t = relab_cog_ethnicity_before_t[-1,]
+
+for(i in 2:25) {
+  variable = relab_cog_fecal_filtered_before[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_cog_fecal_filtered_before,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_cog_fecal_filtered_before)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_cog_fecal_filtered_before)[i]
+}
+
+
+cog_Ethnicity_before = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_cog_ethnicity_before_t[,1:2]))
+write.csv(cog_Ethnicity_before, "tables/cog_fecal_wilcox_Ethnicity_before_y2.csv")
+cog_Ethnicity_before_nona = filter(cog_Ethnicity_before, cog_Ethnicity_before[,3] != "NaN") 
+cog_Ethnicity_before_nona[,3] = as.numeric(as.character(cog_Ethnicity_before_nona[,3]))
+cog_Ethnicity_corrected_before = bind_cols(cog_Ethnicity_before_nona, 
+                               as.data.frame(fdrtool(cog_Ethnicity_before_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(cog_Ethnicity_corrected_before, "tables/cog_fecal_wilcox_Ethnicity_before_corrected_y2.csv")
+```
+
+```{r cog_models_fecal_during}
+Ethnicity_estimatematrix = mat.or.vec(24,2)
+Ethnicity_pvaluematrix = mat.or.vec(24,2)
+
+relab_cog_fecal_filtered_during = as.data.frame(relab_cog_fecal_filtered_during)
+
+relab_cog_ethnicity_during = relab_cog_fecal_filtered_during %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(A:X, ~mean(.)))
+relab_cog_ethnicity_during_t = as.data.frame(t(relab_cog_ethnicity_during))
+names(relab_cog_ethnicity_during_t) <- relab_cog_ethnicity_during_t[1,]
+relab_cog_ethnicity_during_t = relab_cog_ethnicity_during_t[-1,]
+
+for(i in 2:25) {
+  variable = relab_cog_fecal_filtered_during[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_cog_fecal_filtered_during,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_cog_fecal_filtered_during)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_cog_fecal_filtered_during)[i]
+}
+
+
+cog_Ethnicity_during = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_cog_ethnicity_during_t[,1:2]))
+write.csv(cog_Ethnicity_during, "tables/cog_fecal_wilcox_Ethnicity_during_y2.csv")
+cog_Ethnicity_during_nona = filter(cog_Ethnicity_during, cog_Ethnicity_during[,3] != "NaN") 
+cog_Ethnicity_during_nona[,3] = as.numeric(as.character(cog_Ethnicity_during_nona[,3]))
+cog_Ethnicity_corrected_during = bind_cols(cog_Ethnicity_during_nona, 
+                               as.data.frame(fdrtool(cog_Ethnicity_during_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(cog_Ethnicity_corrected_during, "tables/cog_fecal_wilcox_Ethnicity_during_corrected_y2.csv")
+```
+
+```{r cog_models_fecal_after}
+Ethnicity_estimatematrix = mat.or.vec(24,2)
+Ethnicity_pvaluematrix = mat.or.vec(24,2)
+
+relab_cog_fecal_filtered_after = as.data.frame(relab_cog_fecal_filtered_after)
+
+relab_cog_ethnicity_after = relab_cog_fecal_filtered_after %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(A:X, ~mean(.)))
+relab_cog_ethnicity_after_t = as.data.frame(t(relab_cog_ethnicity_after))
+names(relab_cog_ethnicity_after_t) <- relab_cog_ethnicity_after_t[1,]
+relab_cog_ethnicity_after_t = relab_cog_ethnicity_after_t[-1,]
+
+for(i in 2:25) {
+  variable = relab_cog_fecal_filtered_after[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_cog_fecal_filtered_after,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_cog_fecal_filtered_after)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_cog_fecal_filtered_after)[i]
+}
+
+
+cog_Ethnicity_after = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_cog_ethnicity_after_t[,1:2]))
+write.csv(cog_Ethnicity_after, "tables/cog_fecal_wilcox_Ethnicity_after_y2.csv")
+cog_Ethnicity_after_nona = filter(cog_Ethnicity_after, cog_Ethnicity_after[,3] != "NaN") 
+cog_Ethnicity_after_nona[,3] = as.numeric(as.character(cog_Ethnicity_after_nona[,3]))
+cog_Ethnicity_corrected_after = bind_cols(cog_Ethnicity_after_nona, 
+                               as.data.frame(fdrtool(cog_Ethnicity_after_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(cog_Ethnicity_corrected_after, "tables/cog_fecal_wilcox_Ethnicity_after_corrected_y2.csv")
+```
+
+```{r cog_models_oral}
+Ethnicity_estimatematrix = mat.or.vec(24,2)
+Ethnicity_pvaluematrix = mat.or.vec(24,2)
+
+relab_cog_oral_filtered = as.data.frame(relab_cog_oral_filtered)
+
+relab_cog_ethnicity = relab_cog_oral_filtered %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(A:X, ~mean(.)))
+relab_cog_ethnicity_t = as.data.frame(t(relab_cog_ethnicity))
+names(relab_cog_ethnicity_t) <- relab_cog_ethnicity_t[1,]
+relab_cog_ethnicity_t = relab_cog_ethnicity_t[-1,]
+
+for(i in 2:25) {
+  variable = relab_cog_oral_filtered[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_cog_oral_filtered,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_cog_oral_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_cog_oral_filtered)[i]
+}
+
+
+cog_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_cog_ethnicity_t[,1:2]))
+write.csv(cog_Ethnicity, "tables/cog_oral_wilcox_Ethnicity_y2.csv")
+cog_Ethnicity_nona = filter(cog_Ethnicity, cog_Ethnicity[,3] != "NaN") 
+cog_Ethnicity_nona[,3] = as.numeric(as.character(cog_Ethnicity_nona[,3]))
+cog_Ethnicity_corrected = bind_cols(cog_Ethnicity_nona, 
+                               as.data.frame(fdrtool(cog_Ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(cog_Ethnicity_corrected, "tables/cog_oral_wilcox_Ethnicity_corrected_y2.csv")
+```
+
 
 ## ARGs
 
@@ -491,11 +706,1161 @@ adonis2(jacc_arg_oral_white ~ `Study period`,
         permutations = 4999)
 ```
 
+### ARG abundance
+
+Wilcoxon Rank Sum tests (base R) were used to assess if self-reported Ethnicity is associated with the abundance of individual ARG categories. P-values are corrected using fdrtool (v.1.2.16).
+
+```{r arg_models_fecal}
+Ethnicity_estimatematrix = mat.or.vec(21,2)
+Ethnicity_pvaluematrix = mat.or.vec(21,2)
+
+relab_arg_fecal_filtered = as.data.frame(relab_arg_fecal_filtered)
+
+relab_arg_ethnicity = relab_arg_fecal_filtered %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(`ABC Transporter`:`Target Protection`, ~mean(.)))
+relab_arg_ethnicity_t = as.data.frame(t(relab_arg_ethnicity))
+names(relab_arg_ethnicity_t) <- relab_arg_ethnicity_t[1,]
+relab_arg_ethnicity_t = relab_arg_ethnicity_t[-1,]
+
+for(i in 2:22) {
+  variable = relab_arg_fecal_filtered[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_arg_fecal_filtered,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_arg_fecal_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_arg_fecal_filtered)[i]
+}
+
+
+arg_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_arg_ethnicity_t[,1:2]))
+write.csv(arg_Ethnicity, "tables/arg_fecal_wilcox_Ethnicity_y2.csv")
+arg_Ethnicity_nona = filter(arg_Ethnicity, arg_Ethnicity[,3] != "NaN") 
+arg_Ethnicity_nona[,3] = as.numeric(as.character(arg_Ethnicity_nona[,3]))
+arg_Ethnicity_corrected = bind_cols(arg_Ethnicity_nona, 
+                               as.data.frame(fdrtool(arg_Ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(arg_Ethnicity_corrected, "tables/arg_fecal_wilcox_Ethnicity_corrected_y2.csv")
+```
+
+```{r arg_models_oral}
+Ethnicity_estimatematrix = mat.or.vec(21,2)
+Ethnicity_pvaluematrix = mat.or.vec(21,2)
+
+relab_arg_oral_filtered = as.data.frame(relab_arg_oral_filtered)
+
+relab_arg_ethnicity = relab_arg_oral_filtered %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(`ABC Transporter`:`Target Protection`, ~mean(.)))
+relab_arg_ethnicity_t = as.data.frame(t(relab_arg_ethnicity))
+names(relab_arg_ethnicity_t) <- relab_arg_ethnicity_t[1,]
+relab_arg_ethnicity_t = relab_arg_ethnicity_t[-1,]
+
+for(i in 2:22) {
+  variable = relab_arg_oral_filtered[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_arg_oral_filtered,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_arg_oral_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_arg_oral_filtered)[i]
+}
+
+
+arg_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_arg_ethnicity_t[,1:2]))
+write.csv(arg_Ethnicity, "tables/arg_oral_wilcox_Ethnicity_y2.csv")
+arg_Ethnicity_nona = filter(arg_Ethnicity, arg_Ethnicity[,3] != "NaN") 
+arg_Ethnicity_nona[,3] = as.numeric(as.character(arg_Ethnicity_nona[,3]))
+arg_Ethnicity_corrected = bind_cols(arg_Ethnicity_nona, 
+                               as.data.frame(fdrtool(arg_Ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(arg_Ethnicity_corrected, "tables/arg_oral_wilcox_Ethnicity_corrected_y2.csv")
+```
+
+
+## CAZymes
+
+### CAZyme abundance
+
+Wilcoxon Rank Sum tests (base R) were used to assess if self-reported Ethnicity is associated with the abundance of individual CAZyme categories. P-values are corrected using fdrtool (v.1.2.16).
+
+```{r import_caz}
+relab_cazymes = read_tsv("CAZyme_files/caz_c2_contig.tsv")
+  
+relab_caz_fecal_filtered = relab_cazymes %>% left_join(metadata2, by = c("sample" = "SampleID")) %>% 
+  filter(fecal_use == 1)
+relab_caz_oral_filtered = relab_cazymes %>% left_join(metadata2, by = c("sample" = "SampleID")) %>% 
+  filter(oral_use == 1)
+```
+
+```{r caz_models_fecal}
+Ethnicity_estimatematrix = mat.or.vec(25,2)
+Ethnicity_pvaluematrix = mat.or.vec(25,2)
+
+relab_caz_fecal_filtered = as.data.frame(relab_caz_fecal_filtered)
+
+relab_caz_ethnicity = relab_caz_fecal_filtered %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(Arabinogalactan_protein:Xyloglucan, ~mean(.)))
+relab_caz_ethnicity_t = as.data.frame(t(relab_caz_ethnicity))
+names(relab_caz_ethnicity_t) <- relab_caz_ethnicity_t[1,]
+relab_caz_ethnicity_t = relab_caz_ethnicity_t[-1,]
+
+for(i in 2:26) {
+  variable = relab_caz_fecal_filtered[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_caz_fecal_filtered,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_caz_fecal_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_caz_fecal_filtered)[i]
+}
+
+
+caz_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_caz_ethnicity_t[,1:2]))
+write.csv(caz_Ethnicity, "tables/caz_fecal_wilcox_Ethnicity_y2.csv")
+caz_Ethnicity_nona = filter(caz_Ethnicity, caz_Ethnicity[,3] != "NaN") 
+caz_Ethnicity_nona[,3] = as.numeric(as.character(caz_Ethnicity_nona[,3]))
+caz_Ethnicity_corrected = bind_cols(caz_Ethnicity_nona, 
+                               as.data.frame(fdrtool(caz_Ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(caz_Ethnicity_corrected, "tables/caz_fecal_wilcox_Ethnicity_corrected_y2.csv")
+```
+
+```{r caz_models_oral}
+Ethnicity_estimatematrix = mat.or.vec(25,2)
+Ethnicity_pvaluematrix = mat.or.vec(25,2)
+
+relab_caz_oral_filtered = as.data.frame(relab_caz_oral_filtered)
+
+relab_caz_ethnicity = relab_caz_oral_filtered %>% 
+  group_by(Ethnicity) %>% 
+  summarize(across(Arabinogalactan_protein:Xyloglucan, ~mean(.)))
+relab_caz_ethnicity_t = as.data.frame(t(relab_caz_ethnicity))
+names(relab_caz_ethnicity_t) <- relab_caz_ethnicity_t[1,]
+relab_caz_ethnicity_t = relab_caz_ethnicity_t[-1,]
+
+for(i in 2:26) {
+  variable = relab_caz_oral_filtered[,i]
+  b = wilcox.test(variable ~ Ethnicity, 
+                  data = relab_caz_oral_filtered,
+                  paired = F, exact = F)
+  Ethnicity_estimatematrix[i-1,2] = b$statistic
+  Ethnicity_pvaluematrix[i-1,2] = b$p.value
+  Ethnicity_estimatematrix[i-1,1] = names(relab_caz_oral_filtered)[i]
+  Ethnicity_pvaluematrix[i-1,1] = names(relab_caz_oral_filtered)[i]
+}
+
+
+caz_Ethnicity = bind_cols(as.data.frame(Ethnicity_estimatematrix[,1:2]), 
+                     as.data.frame(Ethnicity_pvaluematrix[,2]), 
+                     as.data.frame(relab_caz_ethnicity_t[,1:2]))
+write.csv(caz_Ethnicity, "tables/caz_oral_wilcox_Ethnicity_y2.csv")
+caz_Ethnicity_nona = filter(caz_Ethnicity, caz_Ethnicity[,3] != "NaN") 
+caz_Ethnicity_nona[,3] = as.numeric(as.character(caz_Ethnicity_nona[,3]))
+caz_Ethnicity_corrected = bind_cols(caz_Ethnicity_nona, 
+                               as.data.frame(fdrtool(caz_Ethnicity_nona[,3], 
+                                                     statistic = "pvalue", 
+                                                     plot = F)))
+write.csv(caz_Ethnicity_corrected, "tables/caz_oral_wilcox_Ethnicity_corrected_y2.csv")
+```
+
+Relative abundance graphs for cohort 2
+
+
+```{r caz_graphs_fecal}
+Aplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Lignin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() +
+  ggtitle("Lignin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Bplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Cellulose)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Cellulose") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Cplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Xylan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Xylan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Dplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Xyloglucan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Xyloglucans") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Eplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Pectin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Pectin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Fplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Man0n)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mannan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Gplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Chitin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Chitin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Hplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Peptidoglycan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Peptidoglycan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Iplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, `Mixed Polysaccharides`)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mixed Polysaccharides") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Jplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Starch)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Starch") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Kplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Dextran)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Dextran") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Lplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Fructan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Fructan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Mplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, `Mixed Oligosaccharides`)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mixed Oligosaccharides") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Nplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Mucin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mucin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Oplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Arabinogalactan_protein)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Arabinogalactan proteins") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Pplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, Glycosaminoglycan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Glycosaminoglycan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Qplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cCellulose)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cCellulose") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Rplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cXylan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cXylan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Splot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cXyloglucan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cXyloglucans") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Tplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cMan0n)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cMannan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Uplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cChitin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cChitin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Vplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cPeptidoglycan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cPeptidoglycan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Wplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cMixed)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cMixed") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Xplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, `c_-glucans`)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cBeta-glucans") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Yplot = ggplot(relab_caz_fecal_filtered, aes(Ethnicity, cStarch)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cStarch") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+svg(file = "figures/figure_S_cazymes.svg", width = 15,
+     height = 15)
+plot = plot_grid(Aplot, Bplot, Cplot, Dplot, Eplot,
+                 Fplot, Gplot, Hplot, Iplot, Jplot,
+                 Kplot, Lplot, Mplot, Nplot, Oplot,
+                 Pplot, Qplot, Rplot, Splot, Tplot, 
+                 Uplot, Vplot, Wplot, Xplot, Yplot,
+                 row = 5, ncol = 5,
+          align = "hv", axis = "t")
+plot
+dev.off()
+```
+
+```{r caz_graphs_oral}
+Aplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Lignin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() +
+  ggtitle("Lignin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Bplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Cellulose)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Cellulose") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Cplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Xylan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Xylan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Dplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Xyloglucan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Xyloglucans") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Eplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Pectin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Pectin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Fplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Man0n)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mannan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Gplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Chitin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Chitin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Hplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Peptidoglycan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Peptidoglycan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Iplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, `Mixed Polysaccharides`)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mixed Polysaccharides") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Jplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Starch)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Starch") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Kplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Dextran)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Dextran") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Lplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Fructan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Fructan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Mplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, `Mixed Oligosaccharides`)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mixed Oligosaccharides") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Nplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Mucin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Mucin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Oplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Arabinogalactan_protein)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Arabinogalactan proteins") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Pplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, Glycosaminoglycan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("Glycosaminoglycan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Qplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cCellulose)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cCellulose") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Rplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cXylan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cXylan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Splot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cXyloglucan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cXyloglucans") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Tplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cMan0n)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cMannan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Uplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cChitin)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cChitin") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Vplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cPeptidoglycan)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cPeptidoglycan") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Wplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cMixed)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cMixed") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Xplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, `c_-glucans`)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cBeta-glucans") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+
+Yplot = ggplot(relab_caz_oral_filtered, aes(Ethnicity, cStarch)) +
+  geom_violin(scale = "width", aes(fill = Ethnicity),color=NA, alpha = 0.3,trim=T) +
+  geom_jitter(size=1,aes(color = Ethnicity),shape=1) + 
+  geom_boxplot(fill='black',width = 0.1, outlier.size = NA, outlier.shape = NA) + 
+  stat_summary(fun = "median", size = 2, geom = "point", colour='white', 
+               shape=1, stroke = 0.8) + 
+  scale_color_manual(values=c("#f5c4ca","#87ceeb")) + 
+  scale_fill_manual(values=c("#f5c4ca","#87ceeb")) + 
+  theme_classic() + labs(y = "Relative abundance of CAZymes") +
+  ggtitle("cStarch") +
+  theme_bw() + theme(legend.position="NULL") + 
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", size=1)) + 
+  theme(axis.text.x=element_text(angle=0,hjust=0.5,vjust=0.5))
+
+svg(file = "figures/figure_S_cazymes_oral.svg", width = 15,
+     height = 15)
+plot = plot_grid(Aplot, Bplot, Cplot, Dplot, Eplot,
+                 Fplot, Gplot, Hplot, Iplot, Jplot,
+                 Kplot, Lplot, Mplot, Nplot, Oplot,
+                 Pplot, Qplot, Rplot, Splot, Tplot, 
+                 Uplot, Vplot, Wplot, Xplot, Yplot,
+                 row = 5, ncol = 5,
+          align = "hv", axis = "t")
+plot
+dev.off()
+```
+```
+
 ## NMDS plots
 
 ### Cohort 1 fecal COGs
 ```{r nmds_y1fcog}
-cogfy1 = read_tsv("year1_files/cog.txt")
+cogfy1 = read_tsv("year1_files/cog_collapsed_categories.txt")
 metacogy1 = read_tsv("year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
@@ -503,7 +1868,7 @@ metacogy1 = read_tsv("year1_sample_mapping.tsv") %>%
   left_join(cogfy1, by = c("file_prefix" = "id")) %>% 
   filter(fecal_use == 1)
 
-bray_fecal_cog_y1 = vegdist(metacogy1[,26:146], method = "bray")
+bray_fecal_cog_y1 = vegdist(metacogy1[,26:50], method = "bray")
 
 
 mds_bray_f_cog_y1<-metaMDS(bray_fecal_cog_y1, k=2, trymax=999)
@@ -540,11 +1905,41 @@ brayfcogy1 <- ggplot(mds_bray_f_cog_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfcogy1
+
+
+brayfcogy1s <- ggplot(mds_bray_f_cog_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_cog_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.440, 
+           r<sup>2</sup> = 1.7%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.025",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfcogy1s
 ```
 
 ### Cohort 2 fecal COGs
 ```{r nmds_y2fcog}
-bray_fecal_cog_y2 = vegdist(relab_cog_fecal_filtered[,2:121], method = "bray")
+bray_fecal_cog_y2 = vegdist(relab_cog_fecal_filtered[,2:25], method = "bray")
 
 mds_bray_f_cog_y2<-metaMDS(bray_fecal_cog_y2, k=2, trymax=999)
 mds_bray_f_cog_y2_points<-mds_bray_f_cog_y2$points
@@ -571,15 +1966,44 @@ brayfcogy2 <- ggplot(mds_bray_f_cog_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.146, 
-           r<sup>2</sup> = 1.8%", 
+           label = "<i>p</i> = 0.218, 
+           r<sup>2</sup> = 1.2%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.075",
+           label = "Stress = 0.052",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfcogy2
+
+brayfcogy2s <- ggplot(mds_bray_f_cog_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_cog_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.213, 
+           r<sup>2</sup> = 2.4%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.052",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfcogy2s
 ```
 
 ### Cohort 1 oral COGs
@@ -629,11 +2053,40 @@ brayocogy1 <- ggplot(mds_bray_o_cog_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayocogy1
+
+brayocogy1s <- ggplot(mds_bray_o_cog_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_cog_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 0.3%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.015",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayocogy1s
 ```
 
 ### Cohort 2 oral COGs
 ```{r nmds_y2ocog}
-bray_oral_cog_y2 = vegdist(relab_cog_oral_filtered[,2:121], method = "bray")
+bray_oral_cog_y2 = vegdist(relab_cog_oral_filtered[,2:25], method = "bray")
 
 mds_bray_o_cog_y2<-metaMDS(bray_oral_cog_y2, k=2, trymax=999)
 mds_bray_o_cog_y2_points<-mds_bray_o_cog_y2$points
@@ -660,22 +2113,51 @@ brayocogy2 <- ggplot(mds_bray_o_cog_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.269, 
-           r<sup>2</sup> = 3.8%", 
+           label = "<i>p</i> = 0.293, 
+           r<sup>2</sup> = 3.5%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.011",
+           label = "Stress = 0.007",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayocogy2
+
+brayocogy2s <- ggplot(mds_bray_o_cog_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_cog_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.476, 
+           r<sup>2</sup> = 1.9%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.007",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayocogy2s
 ```
 
 ### Cohort 1 virome COGs
 ```{r nmds_y1fvcog}
-vir_cog = read_tsv("Virome_files_y1/virome_cog_y1.txt")
+vir_cog = read_tsv("Virome_files_y1/virome_cog.txt")
 
-bray_fecalvcog_y1 = vegdist(vir_cog[,5:20], method = "bray")
+bray_fecalvcog_y1 = vegdist(vir_cog[,5:27], method = "bray")
 
 y1cogfv = vir_cog %>% 
   mutate(Ethnicity = case_when(
@@ -708,19 +2190,48 @@ brayfvcogy1 <- ggplot(mds_bray_fvcog_y1_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 5.6% </b>", 
+           r<sup>2</sup> = 7.2% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.190",
+           label = "Stress = 0.180",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfvcogy1
+
+brayfvcogy1s <- ggplot(mds_bray_fvcog_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_fvcog_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.790, 
+           r<sup>2</sup> = 1.7% </b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.180",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfvcogy1s
 ```
 
 ### Cohort 1 fecal ARGs
 ```{r nmds_y1farg}
-argfy1 = read_tsv("year1_files/args_nout.txt")
+argfy1 = read_tsv("year1_files/args_noout.txt")
 metaargy1 = read_tsv("year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
@@ -764,6 +2275,35 @@ brayfargy1 <- ggplot(mds_bray_f_arg_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfargy1
+
+brayfargy1s <- ggplot(mds_bray_f_arg_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_arg_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.360, 
+           r<sup>2</sup> = 1.9%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.051",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfargy1s
 ```
 ### Cohort 2 fecal ARGs
 ```{r nmds_y2farg}
@@ -805,6 +2345,35 @@ brayfargy2 <- ggplot(mds_bray_f_arg_y2_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfargy2
+
+brayfargy2s <- ggplot(mds_bray_f_arg_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_arg_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.485, 
+           r<sup>2</sup> = 1.3%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.060",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfargy2s
 ```
 
 ### Cohort 1 oral ARGs
@@ -853,6 +2422,35 @@ brayoargy1 <- ggplot(mds_bray_o_arg_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayoargy1
+
+brayoargy1s <- ggplot(mds_bray_o_arg_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_arg_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.999, 
+           r<sup>2</sup> = 0.04%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.026",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayoargy1s
 ```
 ### Cohort 2 oral ARGs
 ```{r nmds_y2oarg}
@@ -894,6 +2492,35 @@ brayoargy2 <- ggplot(mds_bray_o_arg_y2_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayoargy2
+
+brayoargy2s <- ggplot(mds_bray_o_arg_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_arg_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.451, 
+           r<sup>2</sup> = 1.9%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.025",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayoargy2s
 ```
 ### Cohort 1 virome ARGs
 ```{r nmds_y1fvarg}
@@ -931,8 +2558,8 @@ brayfvargy1 <- ggplot(mds_bray_fvarg_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 5.6% </b>", 
+           label = "<i>p</i> = 0.940, 
+           r<sup>2</sup> = 1.1%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -940,6 +2567,35 @@ brayfvargy1 <- ggplot(mds_bray_fvarg_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfvargy1
+
+brayfvargy1s <- ggplot(mds_bray_fvarg_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_fvarg_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.940, 
+           r<sup>2</sup> = 1.1%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.190",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfvargy1s
 ```
 
 ### Cohort 1 fecal CAZymes
@@ -988,6 +2644,35 @@ brayfcazy1 <- ggplot(mds_bray_f_caz_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfcazy1
+
+brayfcazy1s <- ggplot(mds_bray_f_caz_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_caz_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.920, 
+           r<sup>2</sup> = 0.5%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.040",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfcazy1s
 ```
 
 ### Cohort 2 fecal CAZymes
@@ -1034,6 +2719,35 @@ brayfcazy2 <- ggplot(mds_bray_f_caz_y2_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfcazy2
+
+brayfcazy2s <- ggplot(mds_bray_f_caz_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_caz_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.965, 
+           r<sup>2</sup> = 0.03%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.049",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfcazy2s
 ```
 ### Cohort 1 oral CAZymes
 ```{r nmds_y1ocaz}
@@ -1081,6 +2795,35 @@ brayocazy1 <- ggplot(mds_bray_o_caz_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayocazy1
+
+brayocazy1s <- ggplot(mds_bray_o_caz_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_caz_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.980, 
+           r<sup>2</sup> = 0.2%</b>", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.026",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayocazy1s
 ```
 
 ### Cohort 2 oral CAZymes
@@ -1128,6 +2871,35 @@ brayocazy2 <- ggplot(mds_bray_o_caz_y2_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayocazy2
+
+brayocazy2s <- ggplot(mds_bray_o_caz_y2_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = `Study period`)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_caz_y2_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = `Study period`), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.564, 
+           r<sup>2</sup> = 1.6%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.072",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayocazy2s
 ```
 
 ### Cohort 1 virome CAZymes
@@ -1175,9 +2947,38 @@ brayfvcazy1 <- ggplot(mds_bray_fvcaz_y1_points2,
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 brayfvcazy1
+
+brayfvcazy1s <- ggplot(mds_bray_fvcaz_y1_points2, 
+                  aes(x = MDS1, y = MDS2, 
+                      color = Stage)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) + scale_fill_manual(
+    values = c("Before"="#238b45","During" = "#d94801", "After"="#2171b5")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_fvcaz_y1_points2, 
+               aes(x = MDS1, y = MDS2, 
+                   fill = Stage), 
+                   alpha = 0.2, size = 0.8, geom = "polygon",
+               linetype = 2,
+               type = "t", level = 0.95) +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<i>p</i> = 0.790, 
+           r<sup>2</sup> = 1.1%", 
+           x = Inf, y = Inf, size = 5,
+           hjust = 1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.170",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1, vjust = 0)
+brayfvcazy1s
 ```
 
-### Combining NMDS plots
+### Combining NMDS plots - Ethnicity
 ```{r figure3}
 svg(file = "figures/figure3.svg", width = 16,
      height = 20)
@@ -1186,12 +2987,11 @@ col1 = plot_grid(brayfy1, brayoy1, brayfvy1,
                  nrow = 5, ncol = 1, 
                  labels = c("A", "E", "I", "M", "Q"), 
                  label_size = 20)
-col2 = plot_grid(brayfcogy1, brayocogy1, brayocogy1, 
+col2 = plot_grid(brayfcogy1, brayocogy1, brayfvcogy1, 
                    brayfcogy2, brayocogy2,
                  nrow = 5, ncol = 1, 
                  labels = c("B", "F", "J", "N", "R"), 
                  label_size = 20)
-##Note - brayocogy1 should be replaced with brayvcogy1 when available
 col3 = plot_grid(brayfargy1, brayoargy1, brayfvargy1,
                    brayfargy2, brayoargy2,
                  nrow = 5, ncol = 1, 
@@ -1208,3 +3008,39 @@ plot = plot_grid(col1, col2, col3, col4, nrow = 1, ncol = 4,
 plot
 dev.off()
 ```
+
+
+### Combining NMDS plots - Ethnicity + Stage
+
+```{r figure_s3}
+svg(file = "figures/figure_S3.svg", width = 16,
+     height = 12)
+plot = plot_grid(jaccfy1, jaccfy1s, jaccfy2, jaccfy2s,
+                 jaccoy1, jaccoy1s, jaccoy2, jaccoy2s,
+                 jaccfvy1, jaccfvy1s,
+                 braynrow = 6, ncol = 4,
+          align = "hv", axis = "t",
+          labels = c("A", "B", "C", "D", "E", "F", "G", "H",
+                     "I", "J"))
+plot
+dev.off()
+```
+
+
+
+```{r figure_s4}
+svg(file = "figure_S4.svg", width = 16, height = 20)
+plot = plot_grid(brayfy1s, brayfcogy1s, brayfargy1s, 
+                 brayfcazy1s, brayoy1s, brayocogy1s,
+                 brayoargy1s, brayocazy1s, brayfvy1s,
+                 brayfvcogy1s, brayfvargy1s, brayfvcazy1s,
+                 brayfy2s, brayfcogy2s, brayfargy2s, 
+                 brayfcazy2s, brayoy2s, brayocogy2s, 
+                 brayoargy2s, brayocazy2s,
+                 nrow = 5, ncol = 4,
+          align = "hv", axis = "t",
+          labels = c("A", "B", "C", "D", "E", "F", "G", "H",
+                     "I", "J", "K", "L", "M", "N", "O", "P",
+                     "Q", "R", "S", "T"))
+plot
+dev.off()
