@@ -5,7 +5,7 @@
 #SBATCH --mail-user=elizabeth.mallott@vanderbilt.edu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 #SBATCH --time=12:00:00
 #SBATCH --output=/home/mallote/humann_join_years.out
 #SBATCH --error=/home/mallote/humann_join_years.err
@@ -22,13 +22,13 @@ mkdir /data/bordenstein_lab/vmi/vmi_metagenomics/combined_shortread/
 
 project2=/data/bordenstein_lab/vmi/vmi_metagenomics/year2/shortread
 project1=/data/bordenstein_lab/vmi/vmi_metagenomics/year1_shortread
-combined=/data/bordenstein_lab/vmi/vmi_metagenomics
+combined=/data/bordenstein_lab/vmi/vmi_metagenomics/combined_shortread
 
 #Merge taxonomy tables from year1 and year2
 mkdir ${combined}/metaphlan
 
-cp ${project1}/metaphlan/year1_merged_abundance_table.txt ${combined}/metaphlan
-cp ${project2}/metaphlan/year2_merged_abundance_table.txt ${combined}/metaphlan
+cp ${project1}/metaphlan/*bugs_list.tsv ${combined}/metaphlan
+cp ${project2}/metaphlan/*bugs_list.tsv ${combined}/metaphlan
 
 merge_metaphlan_tables.py ${combined}/metaphlan/*.txt > ${combined}/metaphlan/combined_merged_abundance_table.txt
 

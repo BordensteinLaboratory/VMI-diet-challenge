@@ -1516,6 +1516,25 @@ adonis2(jacc_arg_oral_white ~ `Study period`,
 ### Cohort 1 fecal COGs
 ```{r nmds_y1fcog}
 cogfy1 = read_tsv("year1_files/cog.txt")
+metacogy1ex = read_tsv("year1_sample_mapping_extended.txt") %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  left_join(cogfy1, by = c("file_prefix" = "id")) %>% 
+  filter(fecal_use == 1)
+bray_fecal_cog_y1_ex = vegdist(metacogy1ex[,28:148], method = "bray")
+adonis2(bray_fecal_cog_y1_ex ~ Ethnicity + `Study period` + antibiotics + contraception + subject_id, data = metacogy1ex, permutations = 4999)
+cogoy1 = read_tsv("year1_files/cog.txt")
+metacogoy1ex = read_tsv("year1_sample_mapping_extended.txt") %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  left_join(cogfy1, by = c("file_prefix" = "id")) %>% 
+  filter(oral_use == 1)
+bray_oral_cog_y1_ex = vegdist(metacogoy1ex[,28:148], method = "bray")
+adonis2(bray_oral_cog_y1_ex ~ Ethnicity + `Study period` + antibiotics + contraception + subject_id, data = metacogoy1ex, permutations = 4999)
+
+cogfy1 = read_tsv("year1_files/cog.txt")
 metacogy1 = read_tsv("year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
@@ -1551,8 +1570,8 @@ brayfcogy1 <- ggplot(mds_bray_f_cog_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.002, 
-           r<sup>2</sup> = 9.2% </b>", 
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 9.3% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1591,8 +1610,8 @@ brayfcogy2 <- ggplot(mds_bray_f_cog_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.146, 
-           r<sup>2</sup> = 1.8%", 
+           label = "<b><i>p</i> = 0.020, 
+           r<sup>2</sup> = 1.2%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1640,8 +1659,8 @@ brayocogy1 <- ggplot(mds_bray_o_cog_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.031, 
-           r<sup>2</sup> = 8.7% </b>", 
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 9.4% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1680,8 +1699,8 @@ brayocogy2 <- ggplot(mds_bray_o_cog_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.269, 
-           r<sup>2</sup> = 3.8%", 
+           label = "<b><i>p</i> = 0.003, 
+           r<sup>2</sup> = 3.5%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1695,7 +1714,8 @@ brayocogy2
 ```{r nmds_y1fvcog}
 vir_cog = read_tsv("Virome_files_y1/virome_cog.txt")
 
-bray_fecalvcog_y1 = vegdist(vir_cog[,5:27], method = "bray")
+bray_fecalvcog_y1 = vegdist(vir_cog[,7:29], method = "bray")
+adonis2(bray_fecalvcog_y1 ~ Ethnicity + Stage + antibiotics + contraception + Subject, data = vir_tax, permutations = 4999)
 
 y1cogfv = vir_cog %>% 
   mutate(Ethnicity = case_when(
@@ -1741,6 +1761,29 @@ brayfvcogy1
 ### Cohort 1 fecal ARGs
 ```{r nmds_y1farg}
 argfy1 = read_tsv("year1_files/args_noout.txt")
+metaargy1ex = read_tsv("year1_sample_mapping_extended.txt") %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  right_join(argfy1, by = c("file_prefix" = "sample")) %>% 
+  filter(fecal_use == 1)
+bray_fecal_arg_y1_ex = vegdist(metaargy1ex[,36:57], method = "bray")
+adonis2(bray_fecal_arg_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metaargy1ex, permutations = 4999)
+jaccard_fecal_arg_y1_ex = vegdist(metaargy1ex[,36:57], method = "jaccard")
+adonis2(jaccard_fecal_arg_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metaargy1ex, permutations = 4999)
+argoy1 = read_tsv("year1_files/args_noout.txt")
+metaargoy1ex = read_tsv("year1_sample_mapping_extended.txt") %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  right_join(argfy1, by = c("file_prefix" = "sample")) %>% 
+  filter(oral_use == 1)
+bray_oral_arg_y1_ex = vegdist(metaargoy1ex[,36:57], method = "bray")
+adonis2(bray_oral_arg_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metaargoy1ex, permutations = 4999)
+jaccard_oral_arg_y1_ex = vegdist(metaargy1ex[,36:57], method = "jaccard")
+adonis2(jaccard_oral_arg_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metaargy1ex, permutations = 4999)
+
+argfy1 = read_tsv("year1_files/args_noout.txt")
 metaargy1 = read_tsv("year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
@@ -1775,7 +1818,7 @@ brayfargy1 <- ggplot(mds_bray_f_arg_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.004, 
+           label = "<b><i>p</i> < 0.001, 
            r<sup>2</sup> = 7.5% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
@@ -1816,7 +1859,7 @@ brayfargy2 <- ggplot(mds_bray_f_arg_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.536, 
+           label = "<i>p</i> = 0.078, 
            r<sup>2</sup> = 0.6%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
@@ -1864,8 +1907,8 @@ brayoargy1 <- ggplot(mds_bray_o_arg_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.001, 
-           r<sup>2</sup> = 10.4% </b>", 
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 13.2% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1905,8 +1948,8 @@ brayoargy2 <- ggplot(mds_bray_o_arg_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.391, 
-           r<sup>2</sup> = 2.5%", 
+           label = "<b><i>p</i> = 0.010, 
+           r<sup>2</sup> = 2.5%</b<", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1919,7 +1962,8 @@ brayoargy2
 ```{r nmds_y1fvarg}
 vir_arg = read_tsv("Virome_files_y1/virome_arg_y1.txt")
 
-bray_fecalvarg_y1 = vegdist(vir_arg[,5:20], method = "bray")
+bray_fecalvarg_y1 = vegdist(vir_arg[,7:22], method = "bray")
+adonis2(bray_fecalvarg_y1 ~ Ethnicity + Stage + antibiotics + contraception + Subject, data = vir_arg, permutations = 4999)
 
 y1argfv = vir_arg %>% 
   mutate(Ethnicity = case_when(
@@ -1952,7 +1996,7 @@ brayfvargy1 <- ggplot(mds_bray_fvarg_y1_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 5.6% </b>", 
+           r<sup>2</sup> = 6.2% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1964,6 +2008,30 @@ brayfvargy1
 
 ### Cohort 1 fecal CAZymes
 ```{r nmds_y1fcaz}
+cazfy1 = read_tsv("year1_files/cazyme_noout.txt")
+metacazy1ex = read_tsv("year1_sample_mapping_extended.txt") %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  right_join(cazfy1, by = c("file_prefix" = "sample")) %>% 
+  filter(fecal_use == 1)
+bray_fecal_caz_y1_ex = vegdist(metacazy1ex[,36:60], method = "bray")
+adonis2(bray_fecal_caz_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metacazy1ex, permutations = 4999)
+jaccard_fecal_caz_y1_ex = vegdist(metacazy1ex[,36:60], method = "jaccard")
+adonis2(jaccard_fecal_caz_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metacazy1ex, permutations = 4999)
+
+cazoy1 = read_tsv("year1_files/cazyme_noout.txt")
+metacazoy1ex = read_tsv("year1_sample_mapping_extended.txt") %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity == "African_American" ~ "Black", 
+    Ethnicity == "Caucasian" ~ "White")) %>% 
+  right_join(cazfy1, by = c("file_prefix" = "sample")) %>% 
+  filter(oral_use == 1)
+bray_oral_caz_y1_ex = vegdist(metacazoy1ex[,36:60], method = "bray")
+adonis2(bray_oral_caz_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metacazoy1ex, permutations = 4999)
+jaccard_oral_caz_y1_ex = vegdist(metacazoy1ex[,36:60], method = "jaccard")
+adonis2(jaccard_oral_caz_y1_ex ~ Ethnicity.x + `Study period` + antibiotics + contraception + subject_id, data = metacazoy1ex, permutations = 4999)
+
 cazfy1 = read_tsv("year1_files/cazyme_noout.txt")
 metafcazy1 = read_tsv("year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
@@ -1999,8 +2067,8 @@ brayfcazy1 <- ggplot(mds_bray_f_caz_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.130, 
-           r<sup>2</sup> = 1.9%", 
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 1.9%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2045,8 +2113,8 @@ brayfcazy2 <- ggplot(mds_bray_f_caz_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.154, 
-           r<sup>2</sup> = 1.7%", 
+           label = "<b><i>p</i> < 0.001, 
+           r<sup>2</sup> = 1.7%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2093,7 +2161,7 @@ brayocazy1 <- ggplot(mds_bray_o_caz_y1_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 29.4%</b>", 
+           r<sup>2</sup> = 33.0%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2139,7 +2207,7 @@ brayocazy2 <- ggplot(mds_bray_o_caz_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.046, 
+           label = "<b><i>p</i> < 0.001, 
            r<sup>2</sup> = 9.9%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
@@ -2154,7 +2222,8 @@ brayocazy2
 ```{r nmds_y1fvcaz}
 vir_caz = read_tsv("Virome_files_y1/virome_peptido.txt")
 
-bray_fecalvcaz_y1 = vegdist(vir_caz[,5:12], method = "bray")
+bray_fecalvcaz_y1 = vegdist(vir_caz[,7:14], method = "bray")
+adonis2(bray_fecalvcaz_y1 ~ Ethnicity + Stage + antibiotics + contraception + Subject, data = vir_caz, permutations = 4999)
 
 y1cazfv = vir_caz %>% 
   mutate(Ethnicity = case_when(
@@ -2186,7 +2255,7 @@ brayfvcazy1 <- ggplot(mds_bray_fvcaz_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.005, 
+           label = "<b><i>p</i> < 0.001, 
            r<sup>2</sup> = 4.1% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
