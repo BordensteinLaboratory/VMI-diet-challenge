@@ -1,0 +1,505 @@
+---
+title: "Short read combined years"
+author: "Liz Mallott"
+date: "4/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview of analysis
+
+This analysis examines if overall community composition differs based on self-reported Ethnicity and what specific taxa are differentially abundant. 
+MetaPhlAn (v3.0.7) was used to profile the taxonomic composition of metagenomes and calculate unweighted and weighted UniFrac distances. 
+
+### Setting up the environment
+
+Load the necessary libraries.
+```{r libraries, results=FALSE, error=FALSE}
+library(tidyverse)
+library(vegan)
+library(pairwiseAdonis)
+library(ggplot2)
+library(ggtext)
+library(cowplot)
+library(car)
+library(multcomp)
+library(ggpubr)
+library(fdrtool)
+library(gridExtra)
+```
+
+### Importing data
+
+Import metadata
+```{r import_meta, error=FALSE}
+metadata_all = read_tsv("combined_sample_mapping_metaphlan_noout.txt")
+metadata2_all = metadata_all %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
+```
+
+Import species-level relative abundance table with outliers (2f4, 4f2, 4f3, 4f4, 11f5, 30f5, 37f1, and 33f1) removed. Transpose and recalculate relative abundance to sum to 1 instead of 100.
+```{r import_relab, error=FALSE}
+relab_all = read_tsv("combined_merged_abundance_table_species.txt")
+relab1_all = relab_all %>% mutate_if(is.numeric, ~./100)
+relab1_all_t = relab1_all %>% pivot_longer(names_to = "file", cols = 2:356) %>% 
+  group_by(body_site, file) %>% 
+  summarize(count = sum(value)) %>% 
+  pivot_wider(names_from = "body_site", values_from = "count")
+```
+
+### Filter samples
+
+Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples. Remove species that don't occur in oral samples. Remove species that don't occur in fecal samples.
+
+```{r filter}
+relab_fecal_all = relab1_all_t %>% left_join(metadata2_all, by = "file") %>% 
+  filter(fecal_use == 1) 
+relab_fecal_filtered_all = relab_fecal_all %>% 
+  mutate(total = rowSums(relab_fecal_all[,2:600])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0)
+
+relab_oral_all = relab1_all_t %>% left_join(metadata2_all, by = "file") %>% 
+  filter(oral_use == 1) 
+relab_oral_filtered_all = relab_oral_all %>% 
+  mutate(total = rowSums(relab_oral_all[,2:600])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0)
+```
+
+### Calculating beta diversity metrics
+
+Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+```{r beta_metrics, error=FALSE}
+brayf_geneall = vegdist(relab_fecal_filtered_all[,2:339], method = "bray")
+jaccf_all = vegdist(relab_fecal_filtered_all[,2:339], method = "jaccard")
+
+brayo_all = vegdist(relab_oral_filtered_all[,2:275], method = "bray")
+jacco_all = vegdist(relab_oral_filtered_all[,2:275], method = "jaccard")
+```
+
+
+### PERMANOVAs - All Samples
+Differences in the taxonomic structure of the community associated with self-reported Ethnicity is assessed using permutational multivariate analysis of variance.
+
+#### Bray-Curtis
+Fecal
+```{r permanova_brayf}
+adonis2(brayf_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_fecal_filtered_all, permutations = 4999)
+```
+
+Oral
+```{r permanova_brayo}
+adonis2(brayo_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_oral_filtered_all, permutations = 4999)
+```
+
+#### Jaccard
+Fecal
+```{r permanova_jaccf}
+adonis2(jaccf_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_fecal_filtered_all, permutations = 4999)
+```
+
+Oral
+```{r permanova_jacco}
+adonis2(jacco_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_oral_filtered_all, permutations = 4999)
+```
+
+#### NMDS plots
+NMDS visualization of distance matrices with all samples, comparing cohorts.
+```{r nmds_bray_tax, echo=FALSE, error=FALSE}
+mds_bray_fall<-metaMDS(brayf_all, k=2, trymax=499)
+mds_bray_f_pointsall<-mds_bray_fall$points
+mds_bray_f_points2all<-merge(x=mds_bray_f_pointsall, 
+                            y = relab_fecal_filtered_all, 
+                                  by.x = "row.names", by.y = "row.names")
+
+brayfall <- ggplot(mds_bray_f_points2all, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity,
+                                              shape = Cohort)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+    theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.title = element_text(size=rel(2)),
+        legend.text = element_text(size = rel(1.8))) +
+  stat_ellipse(data = mds_bray_f_points2all, aes(x = MDS1, y = MDS2, 
+                                              group = Cohort,
+                                              linetype = Cohort),
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b>Cohort: <i>p</i> < 0.001, r<sup>2</sup> = 4.9%</b>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.198",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayfall
+
+mds_bray_oall<-metaMDS(brayo_all, k=2, trymax=499)
+mds_bray_o_pointsall<-mds_bray_oall$points
+mds_bray_o_points2all<-merge(x=mds_bray_o_pointsall, y = relab_oral_filtered_all, 
+                                  by.x = "row.names", by.y = "row.names")
+brayoall <- ggplot(mds_bray_o_points2all, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity,
+                                              shape = Cohort)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_points2all, aes(x = MDS1, y = MDS2, 
+                                              group = Cohort, 
+                                              linetype = Cohort),
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b>Cohort: <i>p</i> < 0.001, r<sup>2</sup> = 8.7%</b>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.192",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayoall
+```
+
+Exporting plots
+
+```{r nmds_export_combotax}
+svg(file = "figures/combined_taxonomy.svg", width = 8,
+     height = 4)
+plot = plot_grid(brayfall, brayoall, nrow = 1, ncol = 2, 
+          rel_widths = c(1, 1, 1, 1), 
+          align = "h", axis = "t",
+          labels = c("A", "B"))
+plot
+dev.off()
+```
+
+## COGs
+
+### Importing data
+Import metadata
+```{r import_meta_gene, error=FALSE}
+metadata_gene = read_tsv("combined_sample_mapping_genes.tsv") %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
+```
+
+Import normalized, unstratified gene abundance table with outliers (2f4, 4f2, 4f3, 4f4, 11f5, 30f5, 37f1, and 33f1) removed. Transpose.
+```{r import_gene, error=FALSE}
+gene_table = read_tsv("combined_genefamilies_cog_cpm_unstratified.tsv")
+genes = gene_table %>% gather(file, count, 2:355) %>% 
+  spread(Gene_Family, count)
+```
+
+### Filter samples
+
+Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples.
+
+```{r filter_gene}
+genes_fecal = genes %>% left_join(metadata_gene, by = "file") %>% 
+  filter(source == "fecal") 
+genes_fecal_filtered = genes_fecal %>% 
+  mutate(total = rowSums(genes_fecal[,2:61256])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
+write_csv(genes_fecal_filtered, "tables/combined_gene_family_cog_cpm_fecal.csv")
+genes_fecal_filtered = read_csv("tables/combined_gene_family_cog_cpm_fecal.csv")
+
+genes_oral = genes %>% left_join(metadata_gene, by = "file") %>% 
+  filter(source == "oral")
+genes_oral_filtered = genes_oral %>% 
+  mutate(total = rowSums(genes_oral[,2:61256])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
+write_csv(genes_oral_filtered, "tables/combined_gene_family_cog_cpm_oral.csv")
+genes_oral_filtered = read_csv("tables/combined_gene_family_cog_cpm_oral.csv")
+```
+
+### Calculating beta diversity metrics
+Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+```{r beta_metrics_gene, error=FALSE}
+brayf_gene = vegdist(genes_fecal_filtered[,2:46147], method = "bray")
+jaccf_gene = vegdist(genes_fecal_filtered[,2:46147], method = "jaccard")
+brayo_gene = vegdist(genes_oral_filtered[,2:36251], method = "bray")
+jacco_gene = vegdist(genes_oral_filtered[,2:36251], method = "jaccard")
+```
+
+### PERMANOVAs - All Samples
+Differences in the COG profiles of the community associated with self-reported Ethnicity is assessed using permutational multivariate analysis of variance.
+
+#### Bray-Curtis
+```{r permanova_brayf_gene}
+adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_fecal_filtered, 
+        permutations = 4999)
+adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_oral_filtered, 
+        permutations = 4999)
+```
+
+#### Jaccard
+```{r permanova_jaccf_gene}
+adonis2(jaccf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_fecal_filtered, 
+        permutations = 4999)
+adonis2(jacco_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_oral_filtered, 
+        permutations = 4999)
+```
+
+#### NMDS plots
+NMDS visualization of distance matrices with all samples, comparing cohorts.
+```{r nmds_bray_gene, echo=FALSE, error=FALSE}
+mds_bray_fgeneall<-metaMDS(brayf_gene, k=2, trymax=499)
+mds_bray_f_pointsgeneall<-mds_bray_fgeneall$points
+mds_bray_f_points2geneall<-merge(x=mds_bray_f_pointsgeneall, 
+                            y = genes_fecal_filtered, 
+                                  by.x = "row.names", by.y = "row.names")
+
+brayfgeneall <- ggplot(mds_bray_f_points2geneall, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity,
+                                              shape = Cohort)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+    theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_points2geneall, aes(x = MDS1, y = MDS2, 
+                                              group = Cohort,
+                                              linetype = Cohort),
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b>Cohort: <i>p</i> < 0.001, r<sup>2</sup> = 9.4%</b>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.077",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayfgeneall
+
+mds_bray_ogeneall<-metaMDS(brayo_gene, k=2, trymax=499)
+mds_bray_o_pointsgeneall<-mds_bray_ogeneall$points
+mds_bray_o_points2geneall<-merge(x=mds_bray_o_pointsgeneall, y = genes_oral_filtered, 
+                                  by.x = "row.names", by.y = "row.names")
+brayogeneall <- ggplot(mds_bray_o_points2geneall, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity,
+                                              shape = Cohort)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_points2geneall, aes(x = MDS1, y = MDS2, 
+                                              group = Cohort, 
+                                              linetype = Cohort),
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b>Cohort: <i>p</i> < 0.001, r<sup>2</sup> = 6.4%</b>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.087",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayogeneall
+```
+
+```{r nmds_export_combocog}
+svg(file = "figures/combined_cogs.svg", width = 8,
+     height = 4)
+plot = plot_grid(brayfgeneall, brayogeneall, nrow = 1, ncol = 2, 
+          rel_widths = c(1, 1, 1, 1), 
+          align = "h", axis = "t",
+          labels = c("A", "B"))
+plot
+dev.off()
+```
+
+## ARGS
+
+Antibiotic resistance genes were identified and quantified with ShortBRED.
+
+### Importing data
+Import metadata
+```{r import_meta_args, error=FALSE}
+metadata_args = read_tsv("combined_sample_mapping_args_noout.txt") %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White"))
+```
+
+Import normalized, arg abundance table with subject 21 removed. Transpose.
+```{r import_args, error=FALSE}
+arg_table = read_tsv("combined_shortbred_abundance.tsv")
+args = arg_table %>% gather(file, count, 2:357) %>% 
+  spread(Family, count)
+```
+
+### Filter samples
+
+Filter out samples that have no identified species or are controls (blanks and mock communities). Separate oral samples from fecal samples.
+
+```{r filter_arg}
+args_fecal = args %>% left_join(metadata_args, by = "file") %>% 
+  filter(fecal_use == 1)
+args_fecal_filtered = args_fecal %>% 
+  mutate(total = rowSums(args_fecal[,2:889])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
+write_csv(args_fecal_filtered, "arg_fecal_combined.csv")
+args_fecal_filtered = read_csv("arg_fecal_combined.csv")
+
+args_oral = args %>% left_join(metadata_args, by = "file") %>% 
+  filter(oral_use == 1)
+args_oral_filtered = args_oral %>% 
+  mutate(total = rowSums(args_oral[,2:889])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) 
+write_csv(args_oral, "arg_oral_combined.csv")
+args_oral_filtered = read_csv("arg_oral_combined.csv")
+```
+
+### Calculating beta diversity metrics
+Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+```{r beta_metrics_arg, error=FALSE}
+brayf_arg = vegdist(args_fecal_filtered[,2:221], method = "bray")
+brayo_arg = vegdist(args_oral_filtered[,2:95], method = "bray")
+jaccf_arg = vegdist(args_fecal_filtered[,2:221], method = "jaccard")
+jacco_arg = vegdist(args_oral_filtered[,2:95], method = "jaccard")
+```
+
+### PERMANOVAs - All Samples
+Differences in the ARG profiles of the community associated with self-reported Ethnicity is assessed using permutational multivariate analysis of variance.
+
+#### Bray-Curtis
+```{r permanova_brayf_arg}
+adonis2(brayf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_fecal_filtered, 
+        permutations = 4999)
+adonis2(brayo_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_oral_filtered, 
+        permutations = 4999)
+```
+
+#### Jaccard
+```{r permanova_jaccf_arg}
+adonis2(jaccf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_fecal_filtered, 
+        permutations = 4999)
+adonis2(jacco_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_oral_filtered, 
+        permutations = 4999)
+```
+
+#### NMDS plots
+NMDS visualization of distance matrices with all samples, comparing cohorts.
+```{r nmds_bray_arg, echo=FALSE, error=FALSE}
+mds_bray_fargall<-metaMDS(brayf_arg, k=2, trymax=999)
+mds_bray_f_pointsargall<-mds_bray_fargall$points
+mds_bray_f_points2argall<-merge(x=mds_bray_f_pointsargall, 
+                            y = args_fecal_filtered, 
+                                  by.x = "row.names", by.y = "row.names")
+
+brayfargall <- ggplot(mds_bray_f_points2argall, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity,
+                                              shape = Cohort)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+    theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_f_points2argall, aes(x = MDS1, y = MDS2, 
+                                              group = Cohort,
+                                              linetype = Cohort),
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b>Cohort: <i>p</i> < 0.001, r<sup>2</sup> = 4.4%</b>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.215",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayfargall
+
+mds_bray_oargall<-metaMDS(brayo_arg, k=2, trymax=499)
+mds_bray_o_pointsargall<-mds_bray_oargall$points
+mds_bray_o_points2argall<-merge(x=mds_bray_o_pointsargall, y = args_oral_filtered, 
+                                  by.x = "row.names", by.y = "row.names")
+brayoargall <- ggplot(mds_bray_o_points2argall, aes(x = MDS1, y = MDS2, 
+                                                 color = Ethnicity,
+                                              shape = Cohort)) +
+  geom_point(size=3) + scale_color_manual(
+    values = c("White"="#87ceeb","Black"="#f5c4ca")) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), 
+        legend.key=element_blank()) + 
+  theme(axis.title.x=element_blank(), 
+        axis.title.y=element_blank(),
+        plot.title = element_blank(),
+        legend.position = "none") +
+  stat_ellipse(data = mds_bray_o_points2argall, aes(x = MDS1, y = MDS2, 
+                                              group = Cohort, 
+                                              linetype = Cohort),
+               type = "t", level = 0.95) + 
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "<b>Cohort: <i>p</i> < 0.001, r<sup>2</sup> = 3.1%</b>", 
+           x = Inf, y = Inf, size = 4,
+           hjust = 1.1, vjust = 1.1)  +
+  annotate(geom = "richtext", fill = NA, label.color = NA,
+           label = "Stress = 0.151",
+           x = Inf, y = -Inf, size = 4,
+           hjust = 1.1, vjust = 0)
+brayoargall
+```
+
+```{r nmds_export_combocog}
+svg(file = "figures/combined_args.svg", width = 8,
+     height = 4)
+plot = plot_grid(brayfargall, brayoargall, nrow = 1, ncol = 2, 
+          rel_widths = c(1, 1, 1, 1), 
+          align = "h", axis = "t",
+          labels = c("A", "B"))
+plot
+dev.off()
+```
+
+## Combined NMDS plots
+
+```{r nmds_export_comboall}
+svg(file = "figures/combined_all.svg", width = 17, height = 8)
+legend1 = get_legend(brayfall + theme(legend.box.margin = margin(0, 0, 0, 12)))
+col1 = plot_grid(brayfall + theme(legend.position = "none"), 
+                 brayoall + theme(legend.position = "none"), 
+                 nrow = 2, ncol = 1, 
+          align = "v", axis = "t",
+          labels = c("A", "D"))
+col2 = plot_grid(brayfgeneall + theme(legend.position = "none"), 
+                 brayogeneall + theme(legend.position = "none"), 
+                 nrow = 2, ncol = 1, 
+          align = "v", axis = "t",
+          labels = c("B", "E"))
+col3 = plot_grid(brayfargall + theme(legend.position = "none"), 
+                brayoargall + theme(legend.position = "none"), 
+                nrow = 2, ncol = 1,
+                align = "v", axis = "t",
+                labels = c("C", "F"))
+col4 = plot_grid(legend1, nrow = 1, ncol =1, labels = c(""))
+plot = plot_grid(col1, col2, col3, col4, nrow = 1, ncol = 5, 
+          rel_widths = c(1.5, 1.5, 1.5, 0.5), 
+          align = "h", axis = "t")
+plot
+dev.off()
+```

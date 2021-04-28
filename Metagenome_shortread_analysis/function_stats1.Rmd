@@ -37,7 +37,7 @@ metadata_gene = read_tsv("year1_sample_mapping_genes_noout.tsv") %>%
                                Ethnicity == "Caucasian" ~ "White"))
 ```
 
-Import normalized, unstratified gene abundance table with outliers (30f5, 37f1, and 33f1) removed. Transpose.
+Import normalized, unstratified gene abundance table with outliers (2f4, 4f2, 4f3, 4f4, 11f5) removed. Transpose.
 ```{r import_gene, error=FALSE}
 gene_table = read_tsv("year1_genefamilies_cog_cpm_unstratified.tsv")
 genes = gene_table %>% gather(file, count, 2:193) %>% 
@@ -97,7 +97,7 @@ Differences in the COG profiles of the community associated with self-reported E
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf_gene}
-adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = genes_fecal_filtered, 
+adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = genes_fecal_filtered, 
         permutations = 4999)
 adonis2(brayf_gene ~ `Study period`, data = genes_fecal_filtered, 
         permutations = 4999)
@@ -109,7 +109,7 @@ adonis2(brayf_gene_white ~ `Study period`, data = genes_fecal_filtered_white,
 
 Oral
 ```{r permanova_brayo_gene}
-adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = genes_oral_filtered, 
+adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = genes_oral_filtered, 
         permutations = 4999)
 adonis2(brayo_gene ~ `Study period`, data = genes_oral_filtered, 
         permutations = 4999)
@@ -1787,6 +1787,20 @@ Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard sim
 ```{r beta_metrics_arg, error=FALSE}
 brayf_arg = vegdist(args_fecal_filtered[,2:185], method = "bray")
 brayo_arg = vegdist(args_oral_filtered[,2:86], method = "bray")
+jaccf_arg = vegdist(args_fecal_filtered[,2:185], method = "jaccard")
+jacco_arg = vegdist(args_oral_filtered[,2:86], method = "jaccard")
+```
+
+PERMANOVAs to examine effect of ethnicity, dietary stage, antibiotic use, contraceptive use, and individual identity on ARG profiles
+```{r perm_arg}
+adonis2(brayf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_fecal_filtered, 
+        permutations = 4999)
+adonis2(brayo_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_oral_filtered, 
+        permutations = 4999)
+adonis2(jaccf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_fecal_filtered, 
+        permutations = 4999)
+adonis2(jacco_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_oral_filtered, 
+        permutations = 4999)
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with all samples.

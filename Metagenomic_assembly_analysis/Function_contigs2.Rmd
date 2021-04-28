@@ -1944,7 +1944,7 @@ brayfcogy1s <- ggplot(mds_bray_f_cog_y1_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> = 0.001, 
-           r<sup>2</sup> = 1.8%</b>", 
+           r<sup>2</sup> = 1.8% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -1984,7 +1984,7 @@ brayfcogy2 <- ggplot(mds_bray_f_cog_y2_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> = 0.020, 
-           r<sup>2</sup> = 1.2%</b>", 
+           r<sup>2</sup> = 1.2% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2013,7 +2013,7 @@ brayfcogy2s <- ggplot(mds_bray_f_cog_y2_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> = 0.004, 
-           r<sup>2</sup> = 2.4%</b>", 
+           r<sup>2</sup> = 2.4% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2131,7 +2131,7 @@ brayocogy2 <- ggplot(mds_bray_o_cog_y2_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> = 0.003, 
-           r<sup>2</sup> = 3.5%</b>", 
+           r<sup>2</sup> = 3.5% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2160,7 +2160,7 @@ brayocogy2s <- ggplot(mds_bray_o_cog_y2_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> = 0.027, 
-           r<sup>2</sup> = 1.9%</b>", 
+           r<sup>2</sup> = 1.9% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -2383,7 +2383,7 @@ brayfargy2s <- ggplot(mds_bray_f_arg_y2_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> = 0.005, 
-           r<sup>2</sup> = 1.8%</b>", 
+           r<sup>2</sup> = 1.8% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -3014,7 +3014,7 @@ col3 = plot_grid(brayfargy1, brayoargy1, brayfvargy1,
                  nrow = 5, ncol = 1, 
                  labels = c("C", "G", "K", "O", "S"), 
                  label_size = 20)
-col4 = plot_grid(brayfcazy1, brayocazy2, brayfvcazy1,
+col4 = plot_grid(brayfcazy1, brayocazy1, brayfvcazy1,
                    brayfcazy2, brayocazy2,
                  nrow = 5, ncol = 1, 
                  labels = c("D", "H", "L", "P", "T"), 

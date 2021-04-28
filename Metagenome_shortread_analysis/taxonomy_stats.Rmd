@@ -222,7 +222,7 @@ brayfy1 <- ggplot(mds_bray_f_points2y1, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 8.3% (All)</b><br><i>p</i> = 0.108, r<sup>2</sup> = 10.1% (Before)<br><b><i>p</i> < 0.001, r<sup>2</sup> = 8.5% (During)</b><br><b><i>p</i> = 0.009, r<sup>2</sup> = 9.3% (After)</b><br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 6.6%</b>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -252,7 +252,7 @@ brayoy1 <- ggplot(mds_bray_o_points2y1, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.007, r<sup>2</sup> = 8.4% (All)</b><br><i>p</i> = 0.135, r<sup>2</sup> = 8.7% (Before)<br><b><i>p</i> = 0.040, r<sup>2</sup> = 12.5% (After)</b><br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 12.7%</b>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -279,7 +279,7 @@ brayfsy1 <- ggplot(mds_bray_f_points2y1, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.988, r<sup>2</sup> = 0.8% (Both)<br><i>p</i> = 0.983, r<sup>2</sup> = 1.7% (Black)<br><i>p</i> = 0.951, r<sup>2</sup> = 1.6% (White)<br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 0.9%</b>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -306,7 +306,7 @@ brayosy1 <- ggplot(mds_bray_o_points2y1, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.990, r<sup>2</sup> = 0.9% (Both)<br><i>p</i> = 0.879, r<sup>2</sup> = 3.7% (Black)<br><i>p</i> = 0.903, r<sup>2</sup> = 2.4% (White)<br>", 
+           label = "<i>p</i> = 0.328, r<sup>2</sup> = 0.8%", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -340,7 +340,7 @@ brayfy2 <- ggplot(mds_bray_f_points2y2, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 8.3% (All)</b><br><i>p</i> = 0.108, r<sup>2</sup> = 10.1% (Before)<br><b><i>p</i> < 0.001, r<sup>2</sup> = 8.5% (During)</b><br><b><i>p</i> = 0.009, r<sup>2</sup> = 9.3% (After)</b><br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 8.2%</b>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -370,7 +370,7 @@ brayoy2 <- ggplot(mds_bray_o_points2y2, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.007, r<sup>2</sup> = 8.4% (All)</b><br><i>p</i> = 0.135, r<sup>2</sup> = 8.7% (Before)<br><b><i>p</i> = 0.040, r<sup>2</sup> = 12.5% (After)</b><br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 8.4%</b>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -397,7 +397,7 @@ brayfsy2 <- ggplot(mds_bray_f_points2y2, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.988, r<sup>2</sup> = 0.8% (Both)<br><i>p</i> = 0.983, r<sup>2</sup> = 1.7% (Black)<br><i>p</i> = 0.951, r<sup>2</sup> = 1.6% (White)<br>", 
+           label = "<b><i>p</i> < 0.001, r<sup>2</sup> = 0.8%</b>", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
@@ -424,7 +424,7 @@ brayosy2 <- ggplot(mds_bray_o_points2y2, aes(x = MDS1, y = MDS2,
                linetype = 2,
                type = "t", level = 0.95) + 
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.990, r<sup>2</sup> = 0.9% (Both)<br><i>p</i> = 0.879, r<sup>2</sup> = 3.7% (Black)<br><i>p</i> = 0.903, r<sup>2</sup> = 2.4% (White)<br>", 
+           label = "<i>p</i> = 0.407, r<sup>2</sup> = 0.9%", 
            x = Inf, y = Inf, size = 4,
            hjust = 1.1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,

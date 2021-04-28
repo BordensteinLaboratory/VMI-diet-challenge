@@ -148,7 +148,7 @@ Differences in the taxonomic structure of the community associated with self-rep
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf}
-adonis2(brayf ~ Ethnicity, 
+adonis2(brayf ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, 
         data = relab_fecal_filtered, 
         permutations = 4999)
 perm = how(nperm = 4999)
@@ -173,7 +173,7 @@ adonis(brayfw ~ `Study period`,
 
 Oral
 ```{r permanova_brayo}
-adonis2(brayo ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, 
+adonis2(brayo ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, 
         data = relab_oral, 
         permutations = 4999)
 perm = how(nperm = 4999)
@@ -345,7 +345,7 @@ dev.off()
 #### Jaccard
 Fecal
 ```{r permanova_jaccf}
-adonis2(jaccf ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, 
+adonis2(jaccf ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, 
         data = relab_fecal_filtered, 
         permutations = 4999)
 perm = how(nperm = 4999)
@@ -370,7 +370,7 @@ adonis(jaccfw ~ `Study period`,
 
 Oral
 ```{r permanova_jacco}
-adonis2(jacco ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, 
+adonis2(jacco ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, 
         data = relab_oral, 
         permutations = 4999)
 perm = how(nperm = 4999)

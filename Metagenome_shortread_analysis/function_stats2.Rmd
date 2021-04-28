@@ -96,7 +96,7 @@ Differences in the COG profiles of the community associated with self-reported E
 #### Bray-Curtis
 Fecal
 ```{r permanova_brayf_gene}
-adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = genes_fecal_filtered, 
+adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = genes_fecal_filtered, 
         permutations = 4999)
 adonis2(brayf_gene ~ `Study period`, data = genes_fecal_filtered, 
         permutations = 4999)
@@ -108,7 +108,7 @@ adonis2(brayf_gene_white ~ `Study period`, data = genes_fecal_filtered_white,
 
 Oral
 ```{r permanova_brayo_gene}
-adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = genes_oral_filtered, 
+adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = genes_oral_filtered, 
         permutations = 4999)
 adonis2(brayo_gene ~ `Study period`, data = genes_oral_filtered, 
         permutations = 4999)
@@ -1786,6 +1786,8 @@ Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard sim
 ```{r beta_metrics_arg, error=FALSE}
 brayf_arg = vegdist(args_fecal_filtered[,2:186], method = "bray")
 brayo_arg = vegdist(args_oral_filtered[,2:66], method = "bray")
+jaccf_arg = vegdist(args_fecal_filtered[,2:186], method = "jaccard")
+jacco_arg = vegdist(args_oral_filtered[,2:66], method = "jaccard")
 
 args_fecal_filtered_black = args_fecal_filtered %>% 
   filter(Ethnicity == "Black")
@@ -1817,7 +1819,9 @@ jacco_arg_white = vegdist(args_oral_filtered_white[,2:66],
 ### PERMANOVAS
 
 ```{r permanova_brayf_arg}
-adonis2(brayf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = args_fecal_filtered, 
+adonis2(brayf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_fecal_filtered, 
+        permutations = 4999)
+adonis2(jaccf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_fecal_filtered, 
         permutations = 4999)
 adonis2(brayf_arg ~ `Study period`, data = args_fecal_filtered, 
         permutations = 4999)
@@ -1828,7 +1832,9 @@ adonis2(brayf_arg_white ~ `Study period`, data = args_fecal_filtered_white,
 ```
 
 ```{r permanova_brayo_arg}
-adonis2(brayo_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = args_oral_filtered, 
+adonis2(brayo_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_oral_filtered, 
+        permutations = 4999)
+adonis2(jacco_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = args_oral_filtered, 
         permutations = 4999)
 adonis2(brayo_arg ~ `Study period`, data = args_oral_filtered, 
         permutations = 4999)
