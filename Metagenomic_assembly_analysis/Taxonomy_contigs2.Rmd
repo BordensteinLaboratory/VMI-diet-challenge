@@ -37,7 +37,7 @@ rel_abund = rel_abund_notax %>% right_join(taxid)
 
 Metadata is imported.
 ```{r import_metadata, echo = F}
-metadata = read_tsv("year2_sample_mapping.txt")
+metadata = read_tsv("tables/year2_sample_mapping.txt")
 metadata2 = metadata %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
@@ -103,7 +103,7 @@ rel_abund_tax_t = rel_abund %>%
 
 rel_abund_tax_fecal = rel_abund_tax_t %>% 
   filter(fecal_use == 1) 
-write.csv(rel_abund_tax_fecal, "relative_abundance_values_fecal.csv")
+write.csv(rel_abund_tax_fecal, "tables/relative_abundance_values_fecal.csv")
 rel_abund_tax_fecal_ethnicity = rel_abund_tax_fecal %>% 
   group_by(Ethnicity) %>% 
   summarize_if(is.numeric, mean, na.rm = T)
@@ -129,7 +129,7 @@ write_csv(rel_abund_tax_fecal_after_ethnicity, "tables/relab_fecal_after.csv")
 
 rel_abund_tax_oral = rel_abund_tax_t %>% 
   filter(oral_use == 1)
-write.csv(rel_abund_tax_oral, "relative_abundance_values_oral.csv")
+write.csv(rel_abund_tax_oral, "tables/relative_abundance_values_oral.csv")
 rel_abund_tax_oral_ethnicity = rel_abund_tax_oral %>% 
   group_by(Ethnicity) %>% 
   summarize_if(is.numeric, mean, na.rm = T)
@@ -860,7 +860,7 @@ even_orals
 Import data and filter into fecal and oral metagenomes.
 
 ```{r dendro_import}
-y1tax = read_tsv("taxon_meta_y1.txt")
+y1tax = read_tsv("tables/taxon_meta_y1.txt")
 
 y1taxoral = y1tax %>% 
   column_to_rownames("sample.name") %>% 
@@ -1287,7 +1287,7 @@ dev.off()
 
 ### Cohort 1 gut taxonomy
 ```{r nmds_y1ftax}
-y1tax_ex = read_tsv("taxon_meta_y1_extended.txt")
+y1tax_ex = read_tsv("tables/taxon_meta_y1_extended.txt")
 y1taxoral_ex = y1tax_ex %>% 
   column_to_rownames("sample.name") %>% 
   filter(source == "oral")

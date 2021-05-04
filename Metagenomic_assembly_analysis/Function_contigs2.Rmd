@@ -43,7 +43,7 @@ write_tsv(rel_abund_cog, "tables/rel_abund_cog_y2.txt")
 
 Metadata is imported.
 ```{r import_metadata, echo = F}
-metadata = read_tsv("year2_sample_mapping.txt")
+metadata = read_tsv("tables/year2_sample_mapping.txt")
 metadata2 = metadata %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
@@ -501,7 +501,7 @@ rel_abund_arg = read_tsv("ARG_files/args_c2_contig.txt")
 
 Metadata is imported.
 ```{r import_metadata, echo = F}
-metadata = read_tsv("year2_sample_mapping.txt")
+metadata = read_tsv("tables/year2_sample_mapping.txt")
 metadata2 = metadata %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
@@ -1878,7 +1878,7 @@ dev.off()
 ### Cohort 1 fecal COGs
 ```{r nmds_y1fcog}
 cogfy1 = read_tsv("year1_files/cog_collapsed_categories.txt")
-metacogy1 = read_tsv("year1_sample_mapping.tsv") %>% 
+metacogy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -2026,7 +2026,7 @@ brayfcogy2s
 ### Cohort 1 oral COGs
 ```{r nmds_y1ocog}
 cogoy1 = read_tsv("year1_files/cog.txt")
-metacogoy1 = read_tsv("year1_sample_mapping.tsv") %>% 
+metacogoy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -2249,7 +2249,7 @@ brayfvcogy1s
 ### Cohort 1 fecal ARGs
 ```{r nmds_y1farg}
 argfy1 = read_tsv("year1_files/args_noout.txt")
-metaargy1 = read_tsv("year1_sample_mapping.tsv") %>% 
+metaargy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -2396,7 +2396,7 @@ brayfargy2s
 ### Cohort 1 oral ARGs
 ```{r nmds_y1oarg}
 argoy1 = read_tsv("year1_files/args_noout.txt")
-metaargoy1 = read_tsv("year1_sample_mapping.tsv") %>% 
+metaargoy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -2618,7 +2618,7 @@ brayfvargy1s
 ### Cohort 1 fecal CAZymes
 ```{r nmds_y1fcaz}
 cazfy1 = read_tsv("year1_files/cazyme_noout.txt")
-metafcazy1 = read_tsv("year1_sample_mapping.tsv") %>% 
+metafcazy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -2769,7 +2769,7 @@ brayfcazy2s
 ### Cohort 1 oral CAZymes
 ```{r nmds_y1ocaz}
 cazoy1 = read_tsv("year1_files/cazyme_noout.txt")
-metaocazy1 = read_tsv("year1_sample_mapping.tsv") %>% 
+metaocazy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -3002,22 +3002,22 @@ svg(file = "figures/figure3.svg", width = 16,
 col1 = plot_grid(brayfy1, brayoy1, brayfvy1,  
                    brayfy2, brayoy2,
                  nrow = 5, ncol = 1, 
-                 labels = c("A", "E", "I", "M", "Q"), 
+                 labels = c("a", "e", "i", "m", "q"), 
                  label_size = 20)
 col2 = plot_grid(brayfcogy1, brayocogy1, brayfvcogy1, 
                    brayfcogy2, brayocogy2,
                  nrow = 5, ncol = 1, 
-                 labels = c("B", "F", "J", "N", "R"), 
+                 labels = c("b", "f", "j", "n", "r"), 
                  label_size = 20)
 col3 = plot_grid(brayfargy1, brayoargy1, brayfvargy1,
                    brayfargy2, brayoargy2,
                  nrow = 5, ncol = 1, 
-                 labels = c("C", "G", "K", "O", "S"), 
+                 labels = c("c", "g", "k", "o", "s"), 
                  label_size = 20)
 col4 = plot_grid(brayfcazy1, brayocazy1, brayfvcazy1,
                    brayfcazy2, brayocazy2,
                  nrow = 5, ncol = 1, 
-                 labels = c("D", "H", "L", "P", "T"), 
+                 labels = c("d", "h", "l", "p", "t"), 
                  label_size = 20)
 plot = plot_grid(col1, col2, col3, col4, nrow = 1, ncol = 4, 
           rel_widths = c(1, 1, 1, 1), 
