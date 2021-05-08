@@ -36,7 +36,7 @@ contigs.txt -> tax.txt
 
 
 ######################################################################################
-# calculate the relative abundance of metagenomes
+# calculate the relative abundance in each metagenome
 ######################################################################################
 
 
