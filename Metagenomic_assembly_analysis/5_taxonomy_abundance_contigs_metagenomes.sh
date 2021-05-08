@@ -62,17 +62,20 @@ head(a)
 
 
 #########
-# keep the annotated sequences from Bacteria, Fungi, Archaea and Viruses 
+# merge the taxonomy and mapped reas while keeping the annotated sequences from Bacteria, Fungi, Archaea and Viruses 
 t1<-merge(t,a,by=c('contig'),all.x = T)
 head(t1)
 dim(t1)
 
-# calculate relative abundance
+
+
+# calculate relative abundance at the contig level
 t1$'relative'<-t1$'count'/sum(t1$'count')
 head(t1)
 t1$'count'<-NULL
 
 write.table(t1, file='1_3_contig_abundance/$f.txt', sep='	', row.names=F, quote=F)
+
 
 
 # calculate relative abundance at the taxon level
@@ -81,6 +84,52 @@ tail(t3)
 t3$'id'<-'$f'
 
 write.table(t3, file='1_6_tax/$f.txt', sep='	', row.names=F, quote=F)
+
+
+
+# calculate relative abundance at the Phylum level
+t2<-aggregate(relative ~ Phylum, t1, sum)
+tail(t2)
+t2$'id'<-'$f'
+
+write.table(t2, file='1_6_tax/phylum/$f.txt', sep='	', row.names=F, quote=F)
+
+
+
+# calculate relative abundance at the genus level
+t4<-aggregate(relative ~ Genus, t1, sum)
+tail(t4)
+t4$'id'<-'$f'
+
+write.table(t4, file='1_6_tax/genus/$f.txt', sep='	', row.names=F, quote=F)
+
+
+
+# calculate relative abundance at the class level
+t5<-aggregate(relative ~ Class, t1, sum)
+tail(t5)
+t5$'id'<-'$f'
+
+write.table(t5, file='1_6_tax/class/$f.txt', sep='	', row.names=F, quote=F)
+
+
+
+# calculate relative abundance at the order level
+t6<-aggregate(relative ~ Order, t1, sum)
+tail(t6)
+t6$'id'<-'$f'
+
+write.table(t6, file='1_6_tax/order/$f.txt', sep='	', row.names=F, quote=F)
+
+
+
+# calculate relative abundance at the family level
+t7<-aggregate(relative ~ Family, t1, sum)
+tail(t7)
+t7$'id'<-'$f'
+
+write.table(t7, file='1_6_tax/family/$f.txt', sep='	', row.names=F, quote=F)
+
 
 quit()
 
