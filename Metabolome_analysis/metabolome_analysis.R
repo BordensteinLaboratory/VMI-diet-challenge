@@ -1,22 +1,28 @@
----
 title: "Metabolome Analysis"
 author: "Rob Markowitz"
 date: "1/25/2020"
-output: html_document
-fig_width: 5
+
 
 library(tidyverse)
 library(readxl)
 library(broom)
 library(knitr)
 library(vegan)
+
+
+
+####Pathway Analysis to determine if super pathways differed between ethnicities#####
+
 classes <- list("Amino Acid", "Cofactors and Vitamins", "Energy", "Lipid", "Nucleotide", "Partially Characterized Molecules", "Carbohydrate", "Peptide", "Xenobiotics")
 Time <- list("Before","After")
+
+meta_file <- 
+data_file <-
+
 adonisResult <- NULL
 adonisEthnicity <- NULL
 adonisTime <- NULL
-meta_file <- 
-  data_file <-
+
   ####Data Cleaning####
 df <- read.csv(data_file, check.names = F, stringsAsFactors = FALSE)
 df_meta <- read.csv(meta_file, check.names = F, stringsAsFactors = FALSE)
