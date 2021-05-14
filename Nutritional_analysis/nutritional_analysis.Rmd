@@ -1,7 +1,6 @@
 ---
 title: "Nutritional analysis"
-author: "Rob Markowitz"
-date: "1/26/2021"
+author: "Robert Markowitz"
 ---
 
 library (ggplot2)
@@ -9,30 +8,36 @@ library(vegan)
 library(dplyr)
 set.seed(999)
 
-# Data Processing####
-
 # Set file path to nutritional data file 
 file <- "Path/to/file"
 #For this experiment, euclidian distance was used as the distance metric
 distance <- "euclidian"
+
 # Read in the data here and select using filter the subset to be tested such as cohort and/or days(s) of diet
 m <-read.csv(file, stringsAsFactors=FALSE,check.names = F)
 m<- filter(m, Cohort == "1")
 #m<- filter(m, Day != "Habitual Diet")
 #m<- filter(m, Day == "Habitual Diet" | Day == "Study Diet-Day 1")
+# Split the data into measurments, here as m1, and metadata, here as m0.
 m1<-as.data.frame(m[,5:length(m)])
 m0<-as.data.frame(m[1:4])
-#Run PERMANOVA & NMDS
+
+# Run PERMANOVA 
 adonis2(m1~Day, data = m0, permutations = 999, method = distance,na.rm = T) 
+# Run NMDS on the data split above, m1, and the distance choice, here euclidian to get scores for plot
 nmds<- metaMDS(m1, dist = distance)
+# Extract the scores and assign to a new variable
 m3<-scores(nmds)
+# Bind metadata, here as m0, and NMDS scores to new variable df for plotting below
 df<-cbind(m3,m0)
 
-#PLOT####
-#Factors
+# Assign factors for the plotting of NMDS scores 
 df$Ethnicity <- factor(df$Ethnicity, levels=c("Black","White"))
 df$Diet <- factor(df$Diet, levels=c("Habitual Diet","Study Diet-Day 1","Study Diet-Day 2","Study Diet-Day 3","Study Diet-Day 4"))
-#Ggplot 
+
+
+# Using GGPLOT2, plot the NMDS scores to compare differences between ethnicities by dietary stage 
+
 p<-ggplot(df, aes(NMDS1,NMDS2,color=Ethnicity,linetype=Diet,shape=Diet)) +
   stat_ellipse( aes(color=Diet),fill= "white", alpha= .4,type='t',size =0.8, geom="polygon",linetype = 2)+
   geom_point(aes(shape=Diet), alpha=1,size=3)+
@@ -53,9 +58,3 @@ p<-ggplot(df, aes(NMDS1,NMDS2,color=Ethnicity,linetype=Diet,shape=Diet)) +
 p <- p + theme_classic()+ theme(text=element_text(family="Times New Roman", size=25))
 p <- p + theme(legend.position = "null")
 p+scale_y_continuous(limits=c(-0.04, 0.04))
-  
-#CLEAR#####
-rm(list=ls())
-file.remove(file) 
-file.remove(temp)
-ggsave(file='nutrition.pdf')
