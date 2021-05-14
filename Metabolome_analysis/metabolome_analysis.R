@@ -1,7 +1,5 @@
 title: "Metabolome Analysis"
-author: "Rob Markowitz"
-date: "1/25/2020"
-
+author: "Robert Markowitz"
 
 library(tidyverse)
 library(readxl)
@@ -10,8 +8,7 @@ library(knitr)
 library(vegan)
 
 
-
-####Pathway Analysis to determine if super pathways differed between ethnicities#####
+# Pathway Analysis to determine if super pathways differed between ethnicities#####
 
 classes <- list("Amino Acid", "Cofactors and Vitamins", "Energy", "Lipid", "Nucleotide", "Partially Characterized Molecules", "Carbohydrate", "Peptide", "Xenobiotics")
 Time <- list("Before","After")
@@ -23,7 +20,7 @@ adonisResult <- NULL
 adonisEthnicity <- NULL
 adonisTime <- NULL
 
-  ####Data Cleaning####
+# Data Cleaning
 df <- read.csv(data_file, check.names = F, stringsAsFactors = FALSE)
 df_meta <- read.csv(meta_file, check.names = F, stringsAsFactors = FALSE)
 df_clean <- drop(df[,c(-1,-4:-13)])
@@ -32,7 +29,8 @@ df_t <- gather(dfx, Subjects,value, 3:length(dfx))
 df_tidy <- merge(df_t,df_meta, "Subjects")
 df_tidy <- rename(df_tidy,Measure=value, Metabolite =BIOCHEMICAL)
 
-####Ethnicity#####
+#  
+
 for(time in Time){ 
   for (var in classes) {
     df_spread2 <- df_tidy%>% 
@@ -46,7 +44,7 @@ for(time in Time){
   }
 }
 
-#Diet
+# 
 for (var in classes) {
   df_spread2 <- df_tidy%>% 
     filter(SUPER_PATHWAY == var)%>%
