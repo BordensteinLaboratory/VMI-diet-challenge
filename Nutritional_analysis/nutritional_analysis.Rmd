@@ -9,14 +9,17 @@ library(vegan)
 library(dplyr)
 set.seed(999)
 
-#Data Processing####
-#Set file path and distance metric
-file <- 
-distance <- 
+# Data Processing####
+
+# Set file path to nutritional data file 
+file <- "Path/to/file"
+#For this experiment, euclidian distance was used as the distance metric
+distance <- "euclidian"
+# Read in the data here and select using filter the subset to be tested such as cohort and/or days(s) of diet
 m <-read.csv(file, stringsAsFactors=FALSE,check.names = F)
 m<- filter(m, Cohort == "1")
-# m<- filter(m, Day != "Habitual Diet")
-# m<- filter(m, Day == "Habitual Diet" | Day == "Study Diet-Day 1")
+#m<- filter(m, Day != "Habitual Diet")
+#m<- filter(m, Day == "Habitual Diet" | Day == "Study Diet-Day 1")
 m1<-as.data.frame(m[,5:length(m)])
 m0<-as.data.frame(m[1:4])
 #Run PERMANOVA & NMDS
