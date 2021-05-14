@@ -13,8 +13,8 @@ library(vegan)
 classes <- list("Amino Acid", "Cofactors and Vitamins", "Energy", "Lipid", "Nucleotide", "Partially Characterized Molecules", "Carbohydrate", "Peptide", "Xenobiotics")
 Time <- list("Before","After")
 
-meta_file <- 
-data_file <-
+meta_file <- "Path/to/metadata_file"
+data_file <- "Path/to/data_file"
 
 adonisResult <- NULL
 adonisEthnicity <- NULL
