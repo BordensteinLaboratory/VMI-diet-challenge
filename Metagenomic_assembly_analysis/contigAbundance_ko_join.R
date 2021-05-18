@@ -4,7 +4,7 @@ library(here)
 setwd("~/Path/to/directory/with/all_contig_relative_abundance_files")
 fileNames <- Sys.glob("*.txt")
 
-#Here the KO list from each cohort is split into distinct columns to allow for mapping in following loop 
+#Here the KO list from each cohort mapped using KOFamScan (all_kos_cohort1.txt output file from kofamscan.sh) is split into distinct columns to allow for mapping in following loop 
 ko_list <- read_tsv("~/Path/to/directory/with/KOs_assigned_to_all_coding_sequences_in each_cohort", col_names = TRUE)
 ko_list <- ko_list %>% drop_na() %>% 
   separate("contig", c("contigID","contig","version"), sep = "_") %>% 
