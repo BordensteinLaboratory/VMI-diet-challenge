@@ -144,8 +144,6 @@ brayc2eth <- ggplot(df, aes(x = NMDS1, y = NMDS2,
 brayc2eth
 
 #Create figures 
-
-#Create figures 
 tiff(file = "sr_KO_Eth.tif", res = 150, width = 18, 
      height = 7, units = "in")
 legend1 = get_legend(brayc1eth + theme(legend.box.margin = margin(0, 0, 0, 12)))
