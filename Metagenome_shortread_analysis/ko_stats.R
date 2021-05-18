@@ -66,6 +66,7 @@ df$`Study period` <- factor(df$`Study period`, levels=c("Before","After"))
 df$SampleID <- as.factor(df$SampleID)
 
 #Plots####
+
 brayc1stage <- ggplot(df, aes(x = NMDS1, y = NMDS2, 
                               color = `Stage`)) +
   geom_point(size=3) + scale_color_manual(
@@ -83,15 +84,7 @@ brayc1stage <- ggplot(df, aes(x = NMDS1, y = NMDS2,
                alpha = 0.2, size = 0.8, geom = "polygon",
                linetype = 2,
                type = "t", level = 0.95) + 
-  ggtitle("KO - Bray-Curtis - Fecal")  +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.997, r<sup>2</sup> = 1.0% (Both)<br><i>p</i> = 0.991, r<sup>2</sup> = 2.0% (Black)<br><i>p</i> = 0.984, r<sup>2</sup> = 2.1% (White)<br>", 
-           x = Inf, y = Inf, size = 4,
-           hjust = 1.1, vjust = 1.1)  +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.159",
-           x = Inf, y = -Inf, size = 4,
-           hjust = 1.1, vjust = 0)
+  ggtitle("KO - Bray-Curtis - Fecal")  
 brayc1stage
 
 brayc1eth <- ggplot(df, aes(x = NMDS1, y = NMDS2, 
@@ -109,15 +102,7 @@ brayc1eth <- ggplot(df, aes(x = NMDS1, y = NMDS2,
                alpha = 0.2, size = 0.8, geom = "polygon",
                linetype = 2,
                type = "t", level = 0.95) + 
-  ggtitle("KO - Bray-Curtis - Fecal") +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.001, r<sup>2</sup> = 5.2% (All) <br><i>p</i> = 0.021, r<sup>2</sup> = 6.4% (Before)<br><i>p</i> = 0.002, r<sup>2</sup> = 5.6% (During)<br><i>p</i> = 0.002, r<sup>2</sup> = 7.0% (After)",
-           x = Inf, y = Inf, size = 4,
-           hjust = 1.1, vjust = 1.1)  +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.159",
-           x = Inf, y = -Inf, size = 4,
-           hjust = 1.1, vjust = 0)
+  ggtitle("KO - Bray-Curtis - Fecal") 
 brayc1eth
 
 brayc2Stage <- ggplot(df, aes(x = NMDS1, y = NMDS2, 
@@ -137,15 +122,7 @@ brayc2Stage <- ggplot(df, aes(x = NMDS1, y = NMDS2,
                alpha = 0.2, size = 0.8, geom = "polygon",
                linetype = 2,
                type = "t", level = 0.95) + 
-  ggtitle("KO - Bray-Curtis - Fecal")  +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.928, r<sup>2</sup> = 1.1% (Both)<br><i>p</i> = 0.997, r<sup>2</sup> = 1.2% (Black)<br><i>p</i> = 0.577, r<sup>2</sup> = 2.8% (White)<br>", 
-           x = Inf, y = Inf, size = 4,
-           hjust = 1.1, vjust = 1.1)  +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.156",
-           x = Inf, y = -Inf, size = 4,
-           hjust = 1.1, vjust = 0)
+  ggtitle("KO - Bray-Curtis - Fecal") 
 brayc2Stage
 
 brayc2eth <- ggplot(df, aes(x = NMDS1, y = NMDS2, 
@@ -163,15 +140,7 @@ brayc2eth <- ggplot(df, aes(x = NMDS1, y = NMDS2,
                alpha = 0.2, size = 0.8, geom = "polygon",
                linetype = 2,
                type = "t", level = 0.95) + 
-  ggtitle("KO - Bray-Curtis- Fecal") +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.002, r<sup>2</sup> = 3.8% (All)</b> <br><i>p</i> = 0.191, r<sup>2</sup> = 8.4% (Before)<br><b><i>p</i> = 0.019, r<sup>2</sup> = 4.1% (During)</b><br><i>p</i> = 0.168, r<sup>2</sup> = 4.6% (After)",
-           x = Inf, y = Inf, size = 4,
-           hjust = 1.1, vjust = 1.1)  +
-  annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.156",
-           x = Inf, y = -Inf, size = 4,
-           hjust = 1.1, vjust = 0)
+  ggtitle("KO - Bray-Curtis- Fecal") 
 brayc2eth
 
 #Create figures 
