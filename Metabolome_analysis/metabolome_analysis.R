@@ -1,16 +1,20 @@
 title: "Metabolome Analysis"
 author: "Robert Markowitz"
 
-library("MetaboAnalystR")
+library(MetaboAnalystR)
+library(ComplexHeatmap)
 library(vegan)
 library(Rfast)
 library(tidyverse)
-library(ComplexHeatmap)
 library(circlize)
 library(rayshader)
 library(readxl)
 library(broom)
 library(knitr)
+library(pvclust)
+library(reshape2)
+library(extrafont)
+
 set.seed(36)
 
 # This analysis was performed to determine if metabolome compositions changed during the dietary intervention and produce a PCA plot incorporated into Figure 5 of the main text. 
@@ -50,6 +54,85 @@ p<- ggplot(df_out,aes(x=PC1,y=PC2,color=Time ))+
 # p<-p+ scale_fill_manual(values=c("#f5c4ca","#87ceeb"))+scale_color_manual(values=c("#f5c4ca","#87ceeb"))
 p<-p+ scale_fill_manual(values=c("#2171b5","#238b45"))+scale_color_manual(values=c("#2171b5","#238b45"))
 p+scale_x_reverse()+ theme(panel.background = element_blank())+ theme(text=element_text(family="Times New Roman", size=25))
+
+
+###Data Cleanup####
+df<- read.csv('plasma_or_urine_metabolite_data_file.csv', stringsAsFactors = FALSE, check.names = F) 
+df <- column_to_rownames(df,"Subjects")
+dat <- df[4:length(df)]
+dist<-as.matrix(vegdist(dat, method='bray', na.rm = T))
+pair_list <- subset(melt(dist), value!=0)
+
+#Ethnicity grouping of paired data 
+df$group <- paste(df$Time, df$Ethnicity)
+temp <- pairDistPlot(dist, df$group, within = T, data= T)
+distframe <- temp$data
+distframe <- filter(distframe, groups == "After Black-After White" | groups == "Before Black-Before White")
+
+#Tiem grouping of paired data 
+temp <- pairDistPlot(dist, df$Time, within = T, data= T)
+distframe2 <- temp$data
+distframe<- filter(distframe2, groups == "Before-Before" | groups == "After-After")
+
+
+temp2 <- pairDistPlot(dist, df$Time, within = F, data= T)
+distframe2 <- temp2$data
+new <-  rbind(distframe,distframe2)
+new <- filter(new, groups == "After Black-After White" | groups == "Before Black-Before White"| groups == "Before-Before" | groups == "After-After")
+
+
+#Distance analysis between ethnicities after removing samples outside of acceptable range (quartiles +- 1.5IQR)
+before<- distframe[which(distframe$groups == "Before Black-Before White"),]
+after<- distframe[which(distframe$groups == "After Black-After White"),]
+
+Q <- quantile(after$distance, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(after$distance)
+up <-  Q[2]+1.5*iqr # Upper Range
+low<- Q[1]-1.5*iqr # Lower Range?
+after_eliminated<- subset(after, after$distance > low & after$distance < up)
+
+Q <- quantile(before$distance, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(before$distance)
+up <-  Q[2]+1.5*iqr # Upper Range
+low<- Q[1]-1.5*iqr # Lower Range?
+before_eliminated<- subset(before, before$distance > low & before$distance < up)
+no_outliers <- rbind(before_eliminated,after_eliminated)
+
+#Distance analysis between all subjects ignoring ethnicity after removing samples outside of acceptable range (quartiles +- 1.5IQR)
+before_<- distframe[which(distframe$groups == "Before-Before"),]
+after<- distframe[which(distframe$groups == "After-After"),]
+
+Q <- quantile(after$distance, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(after$distance)
+up <-  Q[2]+1.5*iqr # Upper Range
+low<- Q[1]-1.5*iqr # Lower Range?
+after_eliminated<- subset(after, after$distance > low & after$distance < up)
+
+Q <- quantile(before$distance, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(before$distance)
+up <-  Q[2]+1.5*iqr # Upper Range
+low<- Q[1]-1.5*iqr # Lower Range?
+before_eliminated<- subset(before, before$distance > low & before$distance < up)
+no_outliers <- rbind(before_eliminated,after_eliminated)
+
+#Plotting
+groups_col <-c("#D8E7F2","#D8EBDF")
+plot <-  distframe %>% ggplot( aes(x=groups, y=distance, fill=groups)) +
+  geom_jitter(aes(colour = factor(groups)), size= .5, alpha= .8) +
+  scale_colour_manual(values=c("#2171b5","#238b45"))+
+  geom_boxplot(fill = groups_col) +
+  labs(x = "", y = "") + 
+  scale_x_discrete(labels = c('Inter-ethnicity, \n After','Inter-ethnicity, \n Before '))+
+  # scale_x_discrete(labels = c('All, After','All, Before '))+
+  coord_flip()
+plot + 
+  theme_classic() +
+  theme( text=element_text(family="Times New Roman", size=25))+
+  theme(legend.position = "none")+
+  theme(plot.margin=unit(c(1,1,1.5,1.2),"cm"))
+
+# Statistical Testing of mean distance of before and after (all subjects and between ethnictiies) with hypothesis that diff between means is zero  
+pairdist_stat <- wilcox.test(distframe$distance~distframe$groups, alternative= "two.sided")
 		
 #Significant (FDR) urine and plasma metabolites exported from MetaboAnalyst as csv file with metabolites and corrected p-values formatted as [1]plasma_metabolite, [2]plasma_p_val, [3]urine_metabolite, [4] urine_p_val 
 s_mets <- read.csv("combined_mets_sig.csv", check.names = F, stringsAsFactors = F)
