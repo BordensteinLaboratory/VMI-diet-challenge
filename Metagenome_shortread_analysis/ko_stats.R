@@ -146,7 +146,7 @@ brayc2eth
 #Create figures 
 
 #Create figures 
-tiff(file = "contig_KO_StudyPeriod.tif", res = 150, width = 18, 
+tiff(file = "sr_KO_Eth.tif", res = 150, width = 18, 
      height = 7, units = "in")
 legend1 = get_legend(brayc1eth + theme(legend.box.margin = margin(0, 0, 0, 12)))
 col1 = plot_grid(brayc1eth + theme(legend.position = "none"),
@@ -160,7 +160,7 @@ plot = plot_grid(col1, col2, legend1, nrow = 1, ncol = 3,
 plot
 dev.off()
 
-tiff(file = "contig_KO_Stage.tif", res = 150, width = 18, 
+tiff(file = "sr_KO_Stage.tif", res = 150, width = 18, 
      height = 7, units = "in")
 legend1 = get_legend(brayc1stage + theme(legend.box.margin = margin(0, 0, 0, 12)))
 col1 = plot_grid(brayc1stage + theme(legend.position = "none"),
