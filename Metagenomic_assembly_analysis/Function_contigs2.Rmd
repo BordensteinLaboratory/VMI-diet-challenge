@@ -114,42 +114,42 @@ Bray-Curtis and Jaccard distance matrices are created using vegan (v2.5-7). Matr
 
 ```{r beta_metrics, error=FALSE}
 bray_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:25], method = "bray")
-jacc_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:25], method = "jaccard")
+jacc_cog_fecal = vegdist(relab_cog_fecal_filtered[,2:25], method = "jaccard", binary = T)
 bray_cog_fecal_black = vegdist(relab_cog_fecal_filtered_black[,2:25], 
                            method = "bray")
 bray_cog_fecal_white = vegdist(relab_cog_fecal_filtered_white[,2:25], 
                            method = "bray")
 jacc_cog_fecal_black = vegdist(relab_cog_fecal_filtered_black[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_cog_fecal_white = vegdist(relab_cog_fecal_filtered_white[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_cog_fecal_before = vegdist(relab_cog_fecal_filtered_before[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_cog_fecal_during = vegdist(relab_cog_fecal_filtered_during[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_cog_fecal_after = vegdist(relab_cog_fecal_filtered_after[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_cog_fecal_before = vegdist(relab_cog_fecal_filtered_before[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_cog_fecal_during = vegdist(relab_cog_fecal_filtered_during[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_cog_fecal_after = vegdist(relab_cog_fecal_filtered_after[,2:25], 
-                           method = "jaccard") 
+                           method = "jaccard", binary = T) 
 
 bray_cog_oral = vegdist(relab_cog_oral_filtered[,2:25], method = "bray")
-jacc_cog_oral = vegdist(relab_cog_oral_filtered[,2:25], method = "jaccard")
+jacc_cog_oral = vegdist(relab_cog_oral_filtered[,2:25], method = "jaccard", binary = T)
 bray_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:25], method = "bray")
 bray_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:25], method = "bray")
-jacc_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:25], method = "jaccard")
-jacc_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:25], method = "jaccard")
+jacc_cog_oral_black = vegdist(relab_cog_oral_filtered_black[,2:25], method = "jaccard", binary = T)
+jacc_cog_oral_white = vegdist(relab_cog_oral_filtered_white[,2:25], method = "jaccard", binary = T)
 bray_cog_oral_before = vegdist(relab_cog_oral_filtered_before[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_cog_oral_after = vegdist(relab_cog_oral_filtered_after[,2:25], 
-                          method = "jaccard")
+                          method = "jaccard", binary = T)
 jacc_cog_oral_before = vegdist(relab_cog_oral_filtered_before[,2:25], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_cog_oral_after = vegdist(relab_cog_oral_filtered_after[,2:25], 
-                          method = "jaccard")
+                          method = "jaccard", binary = T)
 ```
 
 Differences in the COG profile of the community associated with self-reported ethnicity, subject id, and study stage is assessed using permutational multivariate analysis of variance.
@@ -157,12 +157,17 @@ Differences in the COG profile of the community associated with self-reported et
 #### Bray-Curtis
 cog_fecal
 ```{r permanova_brayf}
-adonis2(bray_cog_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
-        data = relab_cog_fecal_filtered, 
-        permutations = 4999)
-adonis2(bray_cog_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_cog_fecal_filtered, permutations = 4999)
-
 adonis2(bray_cog_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_cog_fecal_filtered, permutations = 4999)
+
+anova(betadisper(bray_cog_fecal, group = relab_cog_fecal_filtered$Ethnicity))
+
+anova(betadisper(bray_cog_fecal, group = relab_cog_fecal_filtered$`Study period`))
+
+anova(betadisper(bray_cog_fecal, group = relab_cog_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_cog_fecal, group = relab_cog_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_cog_fecal, group = relab_cog_fecal_filtered$subject_id))
 
 adonis2(bray_cog_fecal ~ Ethnicity, 
         data = relab_cog_fecal_filtered, 
@@ -190,12 +195,17 @@ adonis2(bray_cog_fecal_white ~ `Study period`,
 
 cog_oral
 ```{r permanova_brayo}
-adonis2(bray_cog_oral ~ subject_id + `Study period`, 
-        data = relab_cog_oral_filtered, 
-        permutations = 4999)
-adonis2(bray_cog_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_cog_oral_filtered, permutations = 4999)
-
 adonis2(bray_cog_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_cog_oral_filtered, permutations = 4999)
+
+anova(betadisper(bray_cog_oral, group = relab_cog_oral_filtered$Ethnicity))
+
+anova(betadisper(bray_cog_oral, group = relab_cog_oral_filtered$`Study period`))
+
+anova(betadisper(bray_cog_oral, group = relab_cog_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_cog_oral, group = relab_cog_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_cog_oral, group = relab_cog_oral_filtered$subject_id))
 
 adonis2(bray_cog_oral ~ Ethnicity, 
         data = relab_cog_oral_filtered, 
@@ -220,64 +230,7 @@ adonis2(bray_cog_oral_white ~ `Study period`,
 ```
 
 #### Jaccard
-cog_fecal
-```{r permanova_jaccf}
-adonis2(jacc_cog_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
-        data = relab_cog_fecal_filtered, 
-        permutations = 4999)
-adonis2(jacc_cog_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_cog_fecal_filtered, permutations = 4999)
-
-adonis2(jacc_cog_fecal ~ Ethnicity, 
-        data = relab_cog_fecal_filtered, 
-        permutations = 4999)
-adonis2(jacc_cog_fecal_before ~ Ethnicity, 
-        data = relab_cog_fecal_filtered_before, 
-        permutations = 4999)
-adonis2(jacc_cog_fecal_during ~ Ethnicity, 
-        data = relab_cog_fecal_filtered_during, 
-        permutations = 4999)
-adonis2(jacc_cog_fecal_after ~ Ethnicity, 
-        data = relab_cog_fecal_filtered_after, 
-        permutations = 4999)
-
-adonis2(jacc_cog_fecal ~ `Study period`, 
-        data = relab_cog_fecal_filtered, 
-        permutations = 4999)
-adonis2(jacc_cog_fecal_black ~ `Study period`, 
-        data = relab_cog_fecal_filtered_black, 
-        permutations = 4999)
-adonis2(jacc_cog_fecal_white ~ `Study period`, 
-        data = relab_cog_fecal_filtered_white, 
-        permutations = 4999)
-```
-
-cog_oral
-```{r permanova_jacco}
-adonis2(jacc_cog_oral ~ subject_id + `Study period`, 
-        data = relab_cog_oral_filtered, 
-        permutations = 4999)
-adonis2(bray_cog_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_cog_oral_filtered, permutations = 4999)
-
-adonis2(jacc_cog_oral ~ Ethnicity, 
-        data = relab_cog_oral_filtered, 
-        permutations = 4999)
-adonis2(jacc_cog_oral_before ~ Ethnicity, 
-        data = relab_cog_oral_filtered_before, 
-        permutations = 4999)
-adonis2(jacc_cog_oral_after ~ Ethnicity, 
-        data = relab_cog_oral_filtered_after, 
-        permutations = 4999)
-
-adonis2(jacc_cog_oral ~ `Study period`, 
-        data = relab_cog_oral_filtered, 
-        permutations = 4999)
-adonis2(jacc_cog_oral_black ~ `Study period`, 
-        data = relab_cog_oral_filtered_black, 
-        permutations = 4999)
-adonis2(jacc_cog_oral_white ~ `Study period`, 
-        data = relab_cog_oral_filtered_white, 
-        permutations = 4999)
-```
+Models with Jaccard distances were not run for COGs, as all COG categories appeared in all samples.
 
 ### COG abundance
 
@@ -549,42 +502,42 @@ Bray-Curtis and Jaccard distance matrices are created using vegan (v2.5-7). Matr
 
 ```{r beta_metrics, error=FALSE}
 bray_arg_fecal = vegdist(relab_arg_fecal_filtered[,2:22], method = "bray")
-jacc_arg_fecal = vegdist(relab_arg_fecal_filtered[,2:22], method = "jaccard")
+jacc_arg_fecal = vegdist(relab_arg_fecal_filtered[,2:22], method = "jaccard", binary = T)
 bray_arg_fecal_black = vegdist(relab_arg_fecal_filtered_black[,2:22], 
                            method = "bray")
 bray_arg_fecal_white = vegdist(relab_arg_fecal_filtered_white[,2:22], 
                            method = "bray")
 jacc_arg_fecal_black = vegdist(relab_arg_fecal_filtered_black[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_arg_fecal_white = vegdist(relab_arg_fecal_filtered_white[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_arg_fecal_before = vegdist(relab_arg_fecal_filtered_before[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_arg_fecal_during = vegdist(relab_arg_fecal_filtered_during[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_arg_fecal_after = vegdist(relab_arg_fecal_filtered_after[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_arg_fecal_before = vegdist(relab_arg_fecal_filtered_before[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_arg_fecal_during = vegdist(relab_arg_fecal_filtered_during[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_arg_fecal_after = vegdist(relab_arg_fecal_filtered_after[,2:22], 
-                           method = "jaccard") 
+                           method = "jaccard", binary = T) 
 
 bray_arg_oral = vegdist(relab_arg_oral_filtered[,2:22], method = "bray")
-jacc_arg_oral = vegdist(relab_arg_oral_filtered[,2:22], method = "jaccard")
+jacc_arg_oral = vegdist(relab_arg_oral_filtered[,2:22], method = "jaccard", binary = T)
 bray_arg_oral_black = vegdist(relab_arg_oral_filtered_black[,2:22], method = "bray")
 bray_arg_oral_white = vegdist(relab_arg_oral_filtered_white[,2:22], method = "bray")
-jacc_arg_oral_black = vegdist(relab_arg_oral_filtered_black[,2:22], method = "jaccard")
-jacc_arg_oral_white = vegdist(relab_arg_oral_filtered_white[,2:22], method = "jaccard")
+jacc_arg_oral_black = vegdist(relab_arg_oral_filtered_black[,2:22], method = "jaccard", binary = T)
+jacc_arg_oral_white = vegdist(relab_arg_oral_filtered_white[,2:22], method = "jaccard", binary = T)
 bray_arg_oral_before = vegdist(relab_arg_oral_filtered_before[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_arg_oral_after = vegdist(relab_arg_oral_filtered_after[,2:22], 
-                          method = "jaccard")
+                          method = "jaccard", binary = T)
 jacc_arg_oral_before = vegdist(relab_arg_oral_filtered_before[,2:22], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_arg_oral_after = vegdist(relab_arg_oral_filtered_after[,2:22], 
-                          method = "jaccard")
+                          method = "jaccard", binary = T)
 ```
 
 Differences in the ARG profile of the community associated with self-reported ethnicity, subject id, and study stage is assessed using permutational multivariate analysis of variance.
@@ -595,8 +548,17 @@ arg_fecal
 adonis2(bray_arg_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
         data = relab_arg_fecal_filtered, 
         permutations = 4999)
-adonis2(bray_arg_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_arg_fecal_filtered, permutations = 4999)
 adonis2(bray_arg_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_arg_fecal_filtered, permutations = 4999)
+
+anova(betadisper(bray_arg_fecal, group = relab_arg_fecal_filtered$Ethnicity))
+
+anova(betadisper(bray_arg_fecal, group = relab_arg_fecal_filtered$`Study period`))
+
+anova(betadisper(bray_arg_fecal, group = relab_arg_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_arg_fecal, group = relab_arg_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_arg_fecal, group = relab_arg_fecal_filtered$subject_id))
 
 adonis2(bray_arg_fecal ~ Ethnicity, 
         data = relab_arg_fecal_filtered, 
@@ -627,8 +589,17 @@ arg_oral
 adonis2(bray_arg_oral ~ subject_id + `Study period`, 
         data = relab_arg_oral_filtered, 
         permutations = 4999)
-adonis2(bray_arg_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_arg_oral_filtered, permutations = 4999)
 adonis2(bray_arg_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_arg_oral_filtered, permutations = 4999)
+
+anova(betadisper(bray_arg_oral, group = relab_arg_oral_filtered$Ethnicity))
+
+anova(betadisper(bray_arg_oral, group = relab_arg_oral_filtered$`Study period`))
+
+anova(betadisper(bray_arg_oral, group = relab_arg_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_arg_oral, group = relab_arg_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_arg_oral, group = relab_arg_oral_filtered$subject_id))
 
 adonis2(bray_arg_oral ~ Ethnicity, 
         data = relab_arg_oral_filtered, 
@@ -658,8 +629,17 @@ arg_fecal
 adonis2(jacc_arg_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
         data = relab_arg_fecal_filtered, 
         permutations = 4999)
-adonis2(jacc_arg_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_arg_fecal_filtered, permutations = 4999)
 adonis2(jacc_arg_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_arg_fecal_filtered, permutations = 4999)
+
+anova(betadisper(jacc_arg_fecal, group = relab_arg_fecal_filtered$Ethnicity))
+
+anova(betadisper(jacc_arg_fecal, group = relab_arg_fecal_filtered$`Study period`))
+
+anova(betadisper(jacc_arg_fecal, group = relab_arg_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(jacc_arg_fecal, group = relab_arg_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(jacc_arg_fecal, group = relab_arg_fecal_filtered$subject_id))
 
 adonis2(jacc_arg_fecal ~ Ethnicity, 
         data = relab_arg_fecal_filtered, 
@@ -690,8 +670,17 @@ arg_oral
 adonis2(jacc_arg_oral ~ subject_id + `Study period`, 
         data = relab_arg_oral_filtered, 
         permutations = 4999)
-adonis2(bray_arg_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_arg_oral_filtered, permutations = 4999)
-adonis2(bray_arg_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_arg_oral_filtered, permutations = 4999)
+adonis2(jacc_arg_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_arg_oral_filtered, permutations = 4999)
+
+anova(betadisper(jacc_arg_oral, group = relab_arg_oral_filtered$Ethnicity))
+
+anova(betadisper(jacc_arg_oral, group = relab_arg_oral_filtered$`Study period`))
+
+anova(betadisper(jacc_arg_oral, group = relab_arg_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(jacc_arg_oral, group = relab_arg_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(jacc_arg_oral, group = relab_arg_oral_filtered$subject_id))
 
 adonis2(jacc_arg_oral ~ Ethnicity, 
         data = relab_arg_oral_filtered, 
@@ -811,13 +800,52 @@ relab_caz_oral_filtered = relab_cazymes %>% left_join(metadata2, by = c("sample"
 
 bray_caz_fecal = vegdist(relab_caz_fecal_filtered[,2:26], method = "bray")
 bray_caz_oral = vegdist(relab_caz_oral_filtered[,2:26], method = "bray")
-jaccard_caz_fecal = vegdist(relab_caz_fecal_filtered[,2:26], method = "jaccard")
-jaccard_caz_oral = vegdist(relab_caz_oral_filtered[,2:26], method = "jaccard")
+jaccard_caz_fecal = vegdist(relab_caz_fecal_filtered[,2:26], method = "jaccard", binary = T)
+jaccard_caz_oral = vegdist(relab_caz_oral_filtered[,2:26], method = "jaccard", binary = T)
 
 adonis2(bray_caz_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_caz_fecal_filtered, permutations = 4999)
+anova(betadisper(bray_arg_fecal, group = relab_caz_fecal_filtered$Ethnicity))
+
+anova(betadisper(bray_caz_fecal, group = relab_caz_fecal_filtered$`Study period`))
+
+anova(betadisper(bray_caz_fecal, group = relab_caz_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_caz_fecal, group = relab_caz_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_caz_fecal, group = relab_caz_fecal_filtered$subject_id))
+
 adonis2(bray_caz_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_caz_oral_filtered, permutations = 4999)
+anova(betadisper(bray_caz_oral, group = relab_caz_oral_filtered$Ethnicity))
+
+anova(betadisper(bray_caz_oral, group = relab_caz_oral_filtered$`Study period`))
+
+anova(betadisper(bray_caz_oral, group = relab_caz_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_caz_oral, group = relab_caz_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_caz_oral, group = relab_caz_oral_filtered$subject_id))
+
 adonis2(jaccard_caz_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_caz_fecal_filtered, permutations = 4999)
+anova(betadisper(jaccard_caz_fecal, group = relab_caz_fecal_filtered$Ethnicity))
+
+anova(betadisper(jaccard_caz_fecal, group = relab_caz_fecal_filtered$`Study period`))
+
+anova(betadisper(jaccard_caz_fecal, group = relab_caz_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(jaccard_caz_fecal, group = relab_caz_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(jaccard_caz_fecal, group = relab_caz_fecal_filtered$subject_id))
+
 adonis2(jaccard_caz_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_caz_oral_filtered, permutations = 4999)
+anova(betadisper(jaccard_caz_oral, group = relab_caz_oral_filtered$Ethnicity))
+
+anova(betadisper(jaccard_caz_oral, group = relab_caz_oral_filtered$`Study period`))
+
+anova(betadisper(jaccard_caz_oral, group = relab_caz_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(jaccard_caz_oral, group = relab_caz_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(jaccard_caz_oral, group = relab_caz_oral_filtered$subject_id))
 ```
 
 ```{r caz_models_fecal}
@@ -1878,15 +1906,43 @@ dev.off()
 ### Cohort 1 fecal COGs
 ```{r nmds_y1fcog}
 cogfy1 = read_tsv("year1_files/cog_collapsed_categories.txt")
-metacogy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
+metacogy1 = read_tsv("tables/year1_sample_mapping_extended.txt") %>%
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
   left_join(cogfy1, by = c("file_prefix" = "id")) %>% 
   filter(fecal_use == 1)
 
-bray_fecal_cog_y1 = vegdist(metacogy1[,26:50], method = "bray")
+bray_fecal_cog_y1 = vegdist(metacogy1[,28:52], method = "bray")
 
+adonis2(bray_fecal_cog_y1 ~ Ethnicity + `Study period` + antibiotics + contraception + subject_id, data = metacogy1, permutations = 4999)
+
+anova(betadisper(bray_fecal_cog_y1, group = metacogy1$Ethnicity))
+
+anova(betadisper(bray_fecal_cog_y1, group = metacogy1$`Study period`))
+
+anova(betadisper(bray_fecal_cog_y1, group = metacogy1$antibiotics))
+
+anova(betadisper(bray_fecal_cog_y1, group = metacogy1$contraception))
+
+anova(betadisper(bray_fecal_cog_y1, group = metacogy1$subject_id))
+
+metacogy1_no20 = metacogy1 %>%
+  filter(subject_id != "mb20")
+
+bray_fecal_cog_y1_no20 = vegdist(metacogy1_no20[,28:52], method = "bray")
+
+adonis2(bray_fecal_cog_y1_no20 ~ Ethnicity + `Study period` + antibiotics + contraception + subject_id, data = metacogy1_no20, permutations = 4999)
+
+anova(betadisper(bray_fecal_cog_y1_no20, group = metacogy1_no20$Ethnicity))
+
+anova(betadisper(bray_fecal_cog_y1_no20, group = metacogy1_no20$`Study period`))
+
+anova(betadisper(bray_fecal_cog_y1_no20, group = metacogy1_no20$antibiotics))
+
+anova(betadisper(bray_fecal_cog_y1_no20, group = metacogy1_no20$contraception))
+
+anova(betadisper(bray_fecal_cog_y1_no20, group = metacogy1_no20$subject_id))
 
 mds_bray_f_cog_y1<-metaMDS(bray_fecal_cog_y1, k=2, trymax=999)
 mds_bray_f_cog_y1_points<-mds_bray_f_cog_y1$points
@@ -2026,15 +2082,43 @@ brayfcogy2s
 ### Cohort 1 oral COGs
 ```{r nmds_y1ocog}
 cogoy1 = read_tsv("year1_files/cog.txt")
-metacogoy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
+metacogoy1 = read_tsv("tables/year1_sample_mapping_extended.txt") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
   left_join(cogoy1, by = c("file_prefix" = "id")) %>% 
   filter(oral_use == 1)
 
-bray_oral_cog_y1 = vegdist(metacogoy1[,26:146], method = "bray")
+bray_oral_cog_y1 = vegdist(metacogoy1[,28:148], method = "bray")
 
+adonis2(bray_oral_cog_y1 ~ Ethnicity + `Study period` + antibiotics + contraception + subject_id, data = metacogoy1, permutations = 4999)
+
+anova(betadisper(bray_oral_cog_y1, group = metacogoy1$Ethnicity))
+
+anova(betadisper(bray_oral_cog_y1, group = metacogoy1$`Study period`))
+
+anova(betadisper(bray_oral_cog_y1, group = metacogoy1$antibiotics))
+
+anova(betadisper(bray_oral_cog_y1, group = metacogoy1$contraception))
+
+anova(betadisper(bray_oral_cog_y1, group = metacogoy1$subject_id))
+
+metacogoy1_no20 = metacogoy1 %>%
+  filter(subject_id != "mb20")
+
+bray_oral_cog_y1_no20 = vegdist(metacogoy1_no20[,28:148], method = "bray")
+
+adonis2(bray_oral_cog_y1_no20 ~ Ethnicity + `Study period` + antibiotics + contraception + subject_id, data = metacogoy1_no20, permutations = 4999)
+
+anova(betadisper(bray_oral_cog_y1_no20, group = metacogoy1_no20$Ethnicity))
+
+anova(betadisper(bray_oral_cog_y1_no20, group = metacogoy1_no20$`Study period`))
+
+anova(betadisper(bray_oral_cog_y1_no20, group = metacogoy1_no20$antibiotics))
+
+anova(betadisper(bray_oral_cog_y1_no20, group = metacogoy1_no20$contraception))
+
+anova(betadisper(bray_oral_cog_y1_no20, group = metacogoy1_no20$subject_id))
 
 mds_bray_o_cog_y1<-metaMDS(bray_oral_cog_y1, k=2, trymax=999)
 mds_bray_o_cog_y1_points<-mds_bray_o_cog_y1$points
@@ -2249,14 +2333,74 @@ brayfvcogy1s
 ### Cohort 1 fecal ARGs
 ```{r nmds_y1farg}
 argfy1 = read_tsv("year1_files/args_noout.txt")
-metaargy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
+metaargy1 = read_tsv("tables/year1_sample_mapping_extended.txt") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
   right_join(argfy1, by = c("file_prefix" = "sample")) %>% 
   filter(fecal_use == 1)
 
-bray_fecal_arg_y1 = vegdist(metaargy1[,34:55], method = "bray")
+bray_fecal_arg_y1 = vegdist(metaargy1[,36:57], method = "bray")
+
+adonis2(bray_fecal_arg_y1 ~ Ethnicity + `Study period` + antibiotics + contraception + Subject, data = metaargy1, permutations = 4999)
+
+anova(betadisper(bray_fecal_arg_y1, group = metaargy1$Ethnicity.y))
+
+anova(betadisper(bray_fecal_arg_y1, group = metaargy1$`Study period`))
+
+anova(betadisper(bray_fecal_arg_y1, group = metaargy1$antibiotics))
+
+anova(betadisper(bray_fecal_arg_y1, group = metaargy1$contraception))
+
+anova(betadisper(bray_fecal_arg_y1, group = metaargy1$Subject))
+
+metaargy1_no20 = metaargy1 %>%
+  filter(subject_id != "mb20")
+
+bray_fecal_arg_y1_no20 = vegdist(metaargy1_no20[,36:57], method = "bray")
+
+adonis2(bray_fecal_arg_y1_no20 ~ Ethnicity + `Study period` + antibiotics + contraception + Subject, data = metaargy1_no20, permutations = 4999)
+
+anova(betadisper(bray_fecal_arg_y1_no20, group = metaargy1_no20$Ethnicity.y))
+
+anova(betadisper(bray_fecal_arg_y1_no20, group = metaargy1_no20$`Study period`))
+
+anova(betadisper(bray_fecal_arg_y1_no20, group = metaargy1_no20$antibiotics))
+
+anova(betadisper(bray_fecal_arg_y1_no20, group = metaargy1_no20$contraception))
+
+anova(betadisper(bray_fecal_arg_y1_no20, group = metaargy1_no20$Subject))
+
+jacc_fecal_arg_y1 = vegdist(metaargy1[,36:57], method = "jaccard", binary = T)
+
+adonis2(jacc_fecal_arg_y1 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metaargy1, permutations = 4999)
+
+anova(betadisper(jacc_fecal_arg_y1, group = metaargy1$Ethnicity.y))
+
+anova(betadisper(jacc_fecal_arg_y1, group = metaargy1$`Study period`))
+
+anova(betadisper(jacc_fecal_arg_y1, group = metaargy1$antibiotics))
+
+anova(betadisper(jacc_fecal_arg_y1, group = metaargy1$contraception))
+
+anova(betadisper(jacc_fecal_arg_y1, group = metaargy1$Subject))
+
+metaargy1_no20 = metaargy1 %>%
+  filter(subject_id != "mb20")
+
+jacc_fecal_arg_y1_no20 = vegdist(metaargy1_no20[,36:57], method = "jaccard", binary = T)
+
+adonis2(jacc_fecal_arg_y1_no20 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metaargy1_no20, permutations = 4999)
+
+anova(betadisper(jacc_fecal_arg_y1_no20, group = metaargy1_no20$Ethnicity.y))
+
+anova(betadisper(jacc_fecal_arg_y1_no20, group = metaargy1_no20$`Study period`))
+
+anova(betadisper(jacc_fecal_arg_y1_no20, group = metaargy1_no20$antibiotics))
+
+anova(betadisper(jacc_fecal_arg_y1_no20, group = metaargy1_no20$contraception))
+
+anova(betadisper(jacc_fecal_arg_y1_no20, group = metaargy1_no20$Subject))
 
 mds_bray_f_arg_y1<-metaMDS(bray_fecal_arg_y1, k=2, trymax=999)
 mds_bray_f_arg_y1_points<-mds_bray_f_arg_y1$points
@@ -2396,14 +2540,74 @@ brayfargy2s
 ### Cohort 1 oral ARGs
 ```{r nmds_y1oarg}
 argoy1 = read_tsv("year1_files/args_noout.txt")
-metaargoy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
+metaargoy1 = read_tsv("tables/year1_sample_mapping_extended.txt") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
   right_join(argoy1, by = c("file_prefix" = "sample")) %>% 
   filter(oral_use == 1)
 
-bray_oral_arg_y1 = vegdist(metaargoy1[,34:55], method = "bray")
+bray_oral_arg_y1 = vegdist(metaargoy1[,36:57], method = "bray")
+
+adonis2(bray_oral_arg_y1 ~ Ethnicity + `Study period` + antibiotics + contraception + Subject, data = metaargoy1, permutations = 4999)
+
+anova(betadisper(bray_oral_arg_y1, group = metaargoy1$Ethnicity.y))
+
+anova(betadisper(bray_oral_arg_y1, group = metaargoy1$`Study period`))
+
+anova(betadisper(bray_oral_arg_y1, group = metaargoy1$antibiotics))
+
+anova(betadisper(bray_oral_arg_y1, group = metaargoy1$contraception))
+
+anova(betadisper(bray_oral_arg_y1, group = metaargoy1$Subject))
+
+metaargoy1_no20 = metaargoy1 %>%
+  filter(subject_id != "mb20")
+
+bray_oral_arg_y1_no20 = vegdist(metaargoy1_no20[,36:57], method = "bray")
+
+adonis2(bray_oral_arg_y1_no20 ~ Ethnicity + `Study period` + antibiotics + contraception + Subject, data = metaargoy1_no20, permutations = 4999)
+
+anova(betadisper(bray_oral_arg_y1_no20, group = metaargoy1_no20$Ethnicity.y))
+
+anova(betadisper(bray_oral_arg_y1_no20, group = metaargoy1_no20$`Study period`))
+
+anova(betadisper(bray_oral_arg_y1_no20, group = metaargoy1_no20$antibiotics))
+
+anova(betadisper(bray_oral_arg_y1_no20, group = metaargoy1_no20$contraception))
+
+anova(betadisper(bray_oral_arg_y1_no20, group = metaargoy1_no20$Subject))
+
+jacc_oral_arg_y1 = vegdist(metaargoy1[,36:57], method = "jaccard", binary = T)
+
+adonis2(jacc_oral_arg_y1 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metaargoy1, permutations = 4999)
+
+anova(betadisper(jacc_oral_arg_y1, group = metaargoy1$Ethnicity.y))
+
+anova(betadisper(jacc_oral_arg_y1, group = metaargoy1$`Study period`))
+
+anova(betadisper(jacc_oral_arg_y1, group = metaargoy1$antibiotics))
+
+anova(betadisper(jacc_oral_arg_y1, group = metaargoy1$contraception))
+
+anova(betadisper(jacc_oral_arg_y1, group = metaargoy1$Subject))
+
+metaargoy1_no20 = metaargoy1 %>%
+  filter(subject_id != "mb20")
+
+jacc_oral_arg_y1_no20 = vegdist(metaargoy1_no20[,36:57], method = "jaccard", binary = T)
+
+adonis2(jacc_oral_arg_y1_no20 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metaargoy1_no20, permutations = 4999)
+
+anova(betadisper(jacc_oral_arg_y1_no20, group = metaargoy1_no20$Ethnicity.y))
+
+anova(betadisper(jacc_oral_arg_y1_no20, group = metaargoy1_no20$`Study period`))
+
+anova(betadisper(jacc_oral_arg_y1_no20, group = metaargoy1_no20$antibiotics))
+
+anova(betadisper(jacc_oral_arg_y1_no20, group = metaargoy1_no20$contraception))
+
+anova(betadisper(jacc_oral_arg_y1_no20, group = metaargoy1_no20$Subject))
 
 mds_bray_o_arg_y1<-metaMDS(bray_oral_arg_y1, k=2, trymax=999)
 mds_bray_o_arg_y1_points<-mds_bray_o_arg_y1$points
@@ -2618,14 +2822,73 @@ brayfvargy1s
 ### Cohort 1 fecal CAZymes
 ```{r nmds_y1fcaz}
 cazfy1 = read_tsv("year1_files/cazyme_noout.txt")
-metafcazy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
+metafcazy1 = read_tsv("tables/year1_sample_mapping_extended.txt") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
   right_join(cazfy1, by = c("file_prefix" = "sample")) %>% 
   filter(fecal_use == 1)
 
-bray_fecal_caz_y1 = vegdist(metafcazy1[,34:58], method = "bray")
+bray_fecal_caz_y1 = vegdist(metafcazy1[,36:60], method = "bray")
+
+adonis2(bray_fecal_caz_y1 ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = metafcazy1, permutations = 4999)
+anova(betadisper(bray_fecal_caz_y1, group = metafcazy1$Ethnicity.y))
+
+anova(betadisper(bray_fecal_caz_y1, group = metafcazy1$`Study period`))
+
+anova(betadisper(bray_fecal_caz_y1, group = metafcazy1$antibiotics))
+
+anova(betadisper(bray_fecal_caz_y1, group = metafcazy1$contraception))
+
+anova(betadisper(bray_fecal_caz_y1, group = metafcazy1$Subject))
+
+metafcazy1_no20 = metafcazy1 %>%
+  filter(subject_id != "mb20")
+
+bray_fecal_caz_y1_no20 = vegdist(metafcazy1_no20[,36:60], method = "bray")
+
+adonis2(bray_fecal_caz_y1_no20 ~ Ethnicity + `Study period` + antibiotics + contraception + Subject, data = metafcazy1_no20, permutations = 4999)
+
+anova(betadisper(bray_fecal_caz_y1_no20, group = metafcazy1_no20$Ethnicity.y))
+
+anova(betadisper(bray_fecal_caz_y1_no20, group = metafcazy1_no20$`Study period`))
+
+anova(betadisper(bray_fecal_caz_y1_no20, group = metafcazy1_no20$antibiotics))
+
+anova(betadisper(bray_fecal_caz_y1_no20, group = metafcazy1_no20$contraception))
+
+anova(betadisper(bray_fecal_caz_y1_no20, group = metafcazy1_no20$Subject))
+
+jacc_fecal_caz_y1 = vegdist(metafcazy1[,36:60], method = "jaccard", binary = T)
+
+adonis2(jacc_fecal_caz_y1 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metafcazy1, permutations = 4999)
+
+anova(betadisper(jacc_fecal_caz_y1, group = metafcazy1$Ethnicity.y))
+
+anova(betadisper(jacc_fecal_caz_y1, group = metafcazy1$`Study period`))
+
+anova(betadisper(jacc_fecal_caz_y1, group = metafcazy1$antibiotics))
+
+anova(betadisper(jacc_fecal_caz_y1, group = metafcazy1$contraception))
+
+anova(betadisper(jacc_fecal_caz_y1, group = metafcazy1$Subject))
+
+metafcazy1_no20 = metafcazy1 %>%
+  filter(subject_id != "mb20")
+
+jacc_fecal_caz_y1_no20 = vegdist(metafcazy1_no20[,36:60], method = "jaccard", binary = T)
+
+adonis2(jacc_fecal_caz_y1_no20 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metafcazy1_no20, permutations = 4999)
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$Ethnicity.y))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$`Study period`))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$antibiotics))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$contraception))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$Subject))
 
 mds_bray_f_caz_y1<-metaMDS(bray_fecal_caz_y1, k=2, trymax=999)
 mds_bray_f_caz_y1_points<-mds_bray_f_caz_y1$points
@@ -2769,14 +3032,73 @@ brayfcazy2s
 ### Cohort 1 oral CAZymes
 ```{r nmds_y1ocaz}
 cazoy1 = read_tsv("year1_files/cazyme_noout.txt")
-metaocazy1 = read_tsv("tables/year1_sample_mapping.tsv") %>% 
+metaocazy1 = read_tsv("tables/year1_sample_mapping_extended.txt") %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
   right_join(cazoy1, by = c("file_prefix" = "sample")) %>% 
   filter(oral_use == 1)
 
-bray_oral_caz_y1 = vegdist(metaocazy1[,34:58], method = "bray")
+bray_oral_caz_y1 = vegdist(metaocazy1[,36:60], method = "bray")
+
+adonis2(bray_oral_caz_y1 ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = metaocazy1, permutations = 4999)
+anova(betadisper(bray_oral_caz_y1, group = metaocazy1$Ethnicity.y))
+
+anova(betadisper(bray_oral_caz_y1, group = metaocazy1$`Study period`))
+
+anova(betadisper(bray_oral_caz_y1, group = metaocazy1$antibiotics))
+
+anova(betadisper(bray_oral_caz_y1, group = metaocazy1$contraception))
+
+anova(betadisper(bray_oral_caz_y1, group = metaocazy1$Subject))
+
+metaocazy1_no20 = metaocazy1 %>%
+  filter(subject_id != "mb20")
+
+bray_oral_caz_y1_no20 = vegdist(metaocazy1_no20[,36:60], method = "bray")
+
+adonis2(bray_oral_caz_y1_no20 ~ Ethnicity + `Study period` + antibiotics + contraception + Subject, data = metaocazy1_no20, permutations = 4999)
+
+anova(betadisper(bray_oral_caz_y1_no20, group = metaocazy1_no20$Ethnicity.y))
+
+anova(betadisper(bray_oral_caz_y1_no20, group = metaocazy1_no20$`Study period`))
+
+anova(betadisper(bray_oral_caz_y1_no20, group = metaocazy1_no20$antibiotics))
+
+anova(betadisper(bray_oral_caz_y1_no20, group = metaocazy1_no20$contraception))
+
+anova(betadisper(bray_oral_caz_y1_no20, group = metaocazy1_no20$Subject))
+
+jacc_oral_caz_y1 = vegdist(metaocazy1[,36:60], method = "jaccard", binary = T)
+
+adonis2(jacc_oral_caz_y1 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metaocazy1, permutations = 4999)
+
+anova(betadisper(jacc_oral_caz_y1, group = metaocazy1$Ethnicity.y))
+
+anova(betadisper(jacc_oral_caz_y1, group = metaocazy1$`Study period`))
+
+anova(betadisper(jacc_oral_caz_y1, group = metaocazy1$antibiotics))
+
+anova(betadisper(jacc_oral_caz_y1, group = metaocazy1$contraception))
+
+anova(betadisper(jacc_oral_caz_y1, group = metaocazy1$Subject))
+
+metaocazy1_no20 = metaocazy1 %>%
+  filter(subject_id != "mb20")
+
+jacc_oral_caz_y1_no20 = vegdist(metaocazy1_no20[,36:60], method = "jaccard", binary = T)
+
+adonis2(jacc_fecal_caz_y1_no20 ~ Ethnicity.y + `Study period` + antibiotics + contraception + Subject, data = metafcazy1_no20, permutations = 4999)
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$Ethnicity.y))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$`Study period`))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$antibiotics))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$contraception))
+
+anova(betadisper(jacc_fecal_caz_y1_no20, group = metafcazy1_no20$Subject))
 
 mds_bray_o_caz_y1<-metaMDS(bray_oral_caz_y1, k=2, trymax=999)
 mds_bray_o_caz_y1_points<-mds_bray_o_caz_y1$points

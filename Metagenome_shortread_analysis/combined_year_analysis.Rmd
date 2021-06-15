@@ -35,7 +35,7 @@ library(gridExtra)
 
 Import metadata
 ```{r import_meta, error=FALSE}
-metadata_all = read_tsv("combined_sample_mapping_metaphlan_noout.txt")
+metadata_all = read_tsv("tables/combined_sample_mapping_metaphlan_noout.txt")
 metadata2_all = metadata_all %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
@@ -43,7 +43,7 @@ metadata2_all = metadata_all %>%
 
 Import species-level relative abundance table with outliers (2f4, 4f2, 4f3, 4f4, 11f5, 30f5, 37f1, and 33f1) removed. Transpose and recalculate relative abundance to sum to 1 instead of 100.
 ```{r import_relab, error=FALSE}
-relab_all = read_tsv("combined_merged_abundance_table_species.txt")
+relab_all = read_tsv("tables/combined_merged_abundance_table_species.txt")
 relab1_all = relab_all %>% mutate_if(is.numeric, ~./100)
 relab1_all_t = relab1_all %>% pivot_longer(names_to = "file", cols = 2:356) %>% 
   group_by(body_site, file) %>% 
@@ -75,11 +75,11 @@ relab_oral_filtered_all = relab_oral_all %>%
 
 Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
 ```{r beta_metrics, error=FALSE}
-brayf_geneall = vegdist(relab_fecal_filtered_all[,2:339], method = "bray")
-jaccf_all = vegdist(relab_fecal_filtered_all[,2:339], method = "jaccard")
+brayf_all = vegdist(relab_fecal_filtered_all[,2:339], method = "bray")
+jaccf_all = vegdist(relab_fecal_filtered_all[,2:339], method = "jaccard", binary = T)
 
 brayo_all = vegdist(relab_oral_filtered_all[,2:275], method = "bray")
-jacco_all = vegdist(relab_oral_filtered_all[,2:275], method = "jaccard")
+jacco_all = vegdist(relab_oral_filtered_all[,2:275], method = "jaccard", binary = T)
 ```
 
 
@@ -90,22 +90,70 @@ Differences in the taxonomic structure of the community associated with self-rep
 Fecal
 ```{r permanova_brayf}
 adonis2(brayf_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_fecal_filtered_all, permutations = 4999)
+
+anova(betadisper(brayf_all, group = relab_fecal_filtered_all$Ethnicity))
+
+anova(betadisper(brayf_all, group = relab_fecal_filtered_all$`Study period`))
+
+anova(betadisper(brayf_all, group = relab_fecal_filtered_all$`Antibiotic use`))
+
+anova(betadisper(brayf_all, group = relab_fecal_filtered_all$`Contraceptive use`))
+
+anova(betadisper(brayf_all, group = relab_fecal_filtered_all$Cohort))
+
+anova(betadisper(brayf_all, group = relab_fecal_filtered_all$subject_id))
 ```
 
 Oral
 ```{r permanova_brayo}
 adonis2(brayo_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_oral_filtered_all, permutations = 4999)
+
+anova(betadisper(brayo_all, group = relab_oral_filtered_all$Ethnicity))
+
+anova(betadisper(brayo_all, group = relab_oral_filtered_all$`Study period`))
+
+anova(betadisper(brayo_all, group = relab_oral_filtered_all$`Antibiotic use`))
+
+anova(betadisper(brayo_all, group = relab_oral_filtered_all$`Contraceptive use`))
+
+anova(betadisper(brayo_all, group = relab_oral_filtered_all$Cohort))
+
+anova(betadisper(brayo_all, group = relab_oral_filtered_all$subject_id))
 ```
 
 #### Jaccard
 Fecal
 ```{r permanova_jaccf}
 adonis2(jaccf_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_fecal_filtered_all, permutations = 4999)
+
+anova(betadisper(jaccf_all, group = relab_fecal_filtered_all$Ethnicity))
+
+anova(betadisper(jaccf_all, group = relab_fecal_filtered_all$`Study period`))
+
+anova(betadisper(jaccf_all, group = relab_fecal_filtered_all$`Antibiotic use`))
+
+anova(betadisper(jaccf_all, group = relab_fecal_filtered_all$`Contraceptive use`))
+
+anova(betadisper(jaccf_all, group = relab_fecal_filtered_all$Cohort))
+
+anova(betadisper(jaccf_all, group = relab_fecal_filtered_all$subject_id))
 ```
 
 Oral
 ```{r permanova_jacco}
 adonis2(jacco_all ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = relab_oral_filtered_all, permutations = 4999)
+
+anova(betadisper(jacco_all, group = relab_oral_filtered_all$Ethnicity))
+
+anova(betadisper(jacco_all, group = relab_oral_filtered_all$`Study period`))
+
+anova(betadisper(jacco_all, group = relab_oral_filtered_all$`Antibiotic use`))
+
+anova(betadisper(jacco_all, group = relab_oral_filtered_all$`Contraceptive use`))
+
+anova(betadisper(jacco_all, group = relab_oral_filtered_all$Cohort))
+
+anova(betadisper(jacco_all, group = relab_oral_filtered_all$subject_id))
 ```
 
 #### NMDS plots
@@ -191,7 +239,7 @@ dev.off()
 ### Importing data
 Import metadata
 ```{r import_meta_gene, error=FALSE}
-metadata_gene = read_tsv("combined_sample_mapping_genes.tsv") %>% 
+metadata_gene = read_tsv("tables/combined_sample_mapping_genes.tsv") %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
 ```
@@ -231,9 +279,9 @@ genes_oral_filtered = read_csv("tables/combined_gene_family_cog_cpm_oral.csv")
 Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
 ```{r beta_metrics_gene, error=FALSE}
 brayf_gene = vegdist(genes_fecal_filtered[,2:46147], method = "bray")
-jaccf_gene = vegdist(genes_fecal_filtered[,2:46147], method = "jaccard")
+jaccf_gene = vegdist(genes_fecal_filtered[,2:46147], method = "jaccard", binary = T)
 brayo_gene = vegdist(genes_oral_filtered[,2:36251], method = "bray")
-jacco_gene = vegdist(genes_oral_filtered[,2:36251], method = "jaccard")
+jacco_gene = vegdist(genes_oral_filtered[,2:36251], method = "jaccard", binary = T)
 ```
 
 ### PERMANOVAs - All Samples
@@ -243,16 +291,64 @@ Differences in the COG profiles of the community associated with self-reported E
 ```{r permanova_brayf_gene}
 adonis2(brayf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_fecal_filtered, 
         permutations = 4999)
+anova(betadisper(brayf_gene, group = genes_fecal_filtered$Ethnicity))
+
+anova(betadisper(brayf_gene, group = genes_fecal_filtered$`Study period`))
+
+anova(betadisper(brayf_gene, group = genes_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(brayf_gene, group = genes_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(brayf_gene, group = genes_fecal_filtered$Cohort))
+
+anova(betadisper(brayf_gene, group = genes_fecal_filtered$subject_id))
+
 adonis2(brayo_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_oral_filtered, 
         permutations = 4999)
+anova(betadisper(brayo_gene, group = genes_oral_filtered$Ethnicity))
+
+anova(betadisper(brayo_gene, group = genes_oral_filtered$`Study period`))
+
+anova(betadisper(brayo_gene, group = genes_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(brayo_gene, group = genes_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(brayo_gene, group = genes_oral_filtered$Cohort))
+
+anova(betadisper(brayo_gene, group = genes_oral_filtered$subject_id))
 ```
 
 #### Jaccard
 ```{r permanova_jaccf_gene}
 adonis2(jaccf_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_fecal_filtered, 
         permutations = 4999)
+
+anova(betadisper(jaccf_gene, group = genes_fecal_filtered$Ethnicity))
+
+anova(betadisper(jaccf_gene, group = genes_fecal_filtered$`Study period`))
+
+anova(betadisper(jaccf_gene, group = genes_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(jaccf_gene, group = genes_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(jaccf_gene, group = genes_fecal_filtered$Cohort))
+
+anova(betadisper(jaccf_gene, group = genes_fecal_filtered$subject_id))
+
 adonis2(jacco_gene ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = genes_oral_filtered, 
         permutations = 4999)
+
+anova(betadisper(jacco_gene, group = genes_oral_filtered$Ethnicity))
+
+anova(betadisper(jacco_gene, group = genes_oral_filtered$`Study period`))
+
+anova(betadisper(jacco_gene, group = genes_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(jacco_gene, group = genes_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(jacco_gene, group = genes_oral_filtered$Cohort))
+
+anova(betadisper(jacco_gene, group = genes_oral_filtered$subject_id))
 ```
 
 #### NMDS plots
@@ -337,14 +433,14 @@ Antibiotic resistance genes were identified and quantified with ShortBRED.
 ### Importing data
 Import metadata
 ```{r import_meta_args, error=FALSE}
-metadata_args = read_tsv("combined_sample_mapping_args_noout.txt") %>% 
+metadata_args = read_tsv("tables/combined_sample_mapping_args_noout.txt") %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
 ```
 
 Import normalized, arg abundance table with subject 21 removed. Transpose.
 ```{r import_args, error=FALSE}
-arg_table = read_tsv("combined_shortbred_abundance.tsv")
+arg_table = read_tsv("tables/combined_shortbred_abundance.tsv")
 args = arg_table %>% gather(file, count, 2:357) %>% 
   spread(Family, count)
 ```
@@ -361,7 +457,7 @@ args_fecal_filtered = args_fecal %>%
   filter(total > 0) %>% 
   select_if(~ !is.numeric(.) || sum(.) != 0) 
 write_csv(args_fecal_filtered, "arg_fecal_combined.csv")
-args_fecal_filtered = read_csv("arg_fecal_combined.csv")
+args_fecal_filtered = read_csv("tables/arg_fecal_combined.csv")
 
 args_oral = args %>% left_join(metadata_args, by = "file") %>% 
   filter(oral_use == 1)
@@ -370,7 +466,7 @@ args_oral_filtered = args_oral %>%
   filter(total > 0) %>% 
   select_if(~ !is.numeric(.) || sum(.) != 0) 
 write_csv(args_oral, "arg_oral_combined.csv")
-args_oral_filtered = read_csv("arg_oral_combined.csv")
+args_oral_filtered = read_csv("tables/arg_oral_combined.csv")
 ```
 
 ### Calculating beta diversity metrics
@@ -378,8 +474,10 @@ Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard sim
 ```{r beta_metrics_arg, error=FALSE}
 brayf_arg = vegdist(args_fecal_filtered[,2:221], method = "bray")
 brayo_arg = vegdist(args_oral_filtered[,2:95], method = "bray")
-jaccf_arg = vegdist(args_fecal_filtered[,2:221], method = "jaccard")
-jacco_arg = vegdist(args_oral_filtered[,2:95], method = "jaccard")
+jaccf_arg = vegdist(args_fecal_filtered[,2:221], method = "jaccard",
+                    binary = T)
+jacco_arg = vegdist(args_oral_filtered[,2:95], method = "jaccard",
+                    binary = T)
 ```
 
 ### PERMANOVAs - All Samples
@@ -389,16 +487,62 @@ Differences in the ARG profiles of the community associated with self-reported E
 ```{r permanova_brayf_arg}
 adonis2(brayf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_fecal_filtered, 
         permutations = 4999)
+anova(betadisper(brayf_arg, group = args_fecal_filtered$Ethnicity))
+
+anova(betadisper(brayf_arg, group = args_fecal_filtered$`Study period`))
+
+anova(betadisper(brayf_arg, group = args_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(brayf_arg, group = args_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(brayf_arg, group = args_fecal_filtered$Cohort))
+
+anova(betadisper(brayf_arg, group = args_fecal_filtered$subject_id))
+
 adonis2(brayo_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_oral_filtered, 
         permutations = 4999)
+anova(betadisper(brayo_arg, group = args_oral_filtered$Ethnicity))
+
+anova(betadisper(brayo_arg, group = args_oral_filtered$`Study period`))
+
+anova(betadisper(brayo_arg, group = args_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(brayo_arg, group = args_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(brayo_arg, group = args_oral_filtered$Cohort))
+
+anova(betadisper(brayo_arg, group = args_oral_filtered$subject_id))
 ```
 
 #### Jaccard
 ```{r permanova_jaccf_arg}
 adonis2(jaccf_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_fecal_filtered, 
         permutations = 4999)
+anova(betadisper(jaccf_arg, group = args_fecal_filtered$Ethnicity))
+
+anova(betadisper(jaccf_arg, group = args_fecal_filtered$`Study period`))
+
+anova(betadisper(jaccf_arg, group = args_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(jaccf_arg, group = args_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(jaccf_arg, group = args_fecal_filtered$Cohort))
+
+anova(betadisper(jaccf_arg, group = args_fecal_filtered$subject_id))
+
 adonis2(jacco_arg ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + Cohort + subject_id, data = args_oral_filtered, 
         permutations = 4999)
+anova(betadisper(jacco_arg, group = args_oral_filtered$Ethnicity))
+
+anova(betadisper(jacco_arg, group = args_oral_filtered$`Study period`))
+
+anova(betadisper(jacco_arg, group = args_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(jacco_arg, group = args_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(jacco_arg, group = args_oral_filtered$Cohort))
+
+anova(betadisper(jacco_arg, group = args_oral_filtered$subject_id))
 ```
 
 #### NMDS plots

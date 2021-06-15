@@ -35,7 +35,7 @@ library(gridExtra)
 
 Import metadata
 ```{r import_meta, error=FALSE}
-metadata = read_tsv("year2_sample_mapping_metaphlan.tsv")
+metadata = read_tsv("tables/year2_sample_mapping_metaphlan.tsv")
 metadata2 = metadata %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White"))
@@ -43,7 +43,7 @@ metadata2 = metadata %>%
 
 Import species-level relative abundance table with outliers (30f5, 37f1, and 33f1) removed. Transpose and recalculate relative abundance to sum to 1 instead of 100.
 ```{r import_relab, error=FALSE}
-relab = read_tsv("year2_merged_abundance_table_species.txt")
+relab = read_tsv("tables/year2_merged_abundance_table_species.txt")
 relab1 = relab %>% mutate_if(is.numeric, ~./100)
 relab1_t = relab1 %>% gather(file, count, 2:164) %>% 
   spread(body_site, count)
@@ -127,17 +127,23 @@ relab_oral_w = relab_oral %>% filter(Ethnicity == "White")
 UniFrac distances are calculated by a MetaPhlAn helper function. Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
 ```{r beta_metrics, error=FALSE}
 brayf = vegdist(relab_fecal_filtered[,2:294], method = "bray")
-jaccf = vegdist(relab_fecal_filtered[,2:294], method = "jaccard")
+jaccf = vegdist(relab_fecal_filtered[,2:294], method = "jaccard", 
+                binary = T)
 brayfb = vegdist(relab_fecal_filtered_b[,2:294], method = "bray")
 brayfw = vegdist(relab_fecal_filtered_w[,2:294], method = "bray")
-jaccfb = vegdist(relab_fecal_filtered_b[,2:294], method = "jaccard")
-jaccfw = vegdist(relab_fecal_filtered_w[,2:294], method = "jaccard")
+jaccfb = vegdist(relab_fecal_filtered_b[,2:294], method = "jaccard", 
+                binary = T)
+jaccfw = vegdist(relab_fecal_filtered_w[,2:294], method = "jaccard", 
+                binary = T)
 brayo = vegdist(relab_oral[,2:239], method = "bray")
-jacco = vegdist(relab_oral[,2:239], method = "jaccard")
+jacco = vegdist(relab_oral[,2:239], method = "jaccard", 
+                binary = T)
 brayob = vegdist(relab_oral_b[,2:239], method = "bray")
 brayow = vegdist(relab_oral_w[,2:239], method = "bray")
-jaccob = vegdist(relab_oral_b[,2:239], method = "jaccard")
-jaccow = vegdist(relab_oral_w[,2:239], method = "jaccard")
+jaccob = vegdist(relab_oral_b[,2:239], method = "jaccard", 
+                binary = T)
+jaccow = vegdist(relab_oral_w[,2:239], method = "jaccard", 
+                binary = T)
 ```
 
 ### PERMANOVAs - All Samples
@@ -149,34 +155,40 @@ Fecal
 adonis2(brayf ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, 
         data = relab_fecal_filtered, 
         permutations = 4999)
-adonis2(brayf ~ `Study period`, 
+
+adonis2(brayf ~ subject_id*`Study period`, 
         data = relab_fecal_filtered, 
-        permutations = 4999, by = "margin")
-pairwise.adonis(brayf, 
-                factors = relab_fecal_filtered$`Study period`, 
-                perm = 4999, 
-                p.adjust.m='holm')
-adonis(brayfb ~ `Study period`, 
-        data = relab_fecal_filtered_b, 
-        permutations = 4999, by = "margin")
-adonis(brayfw ~ `Study period`, 
-        data = relab_fecal_filtered_w, 
-        permutations = 4999, by = "margin")
+        permutations = 4999)
+
+anova(betadisper(brayf, group = relab_fecal_filtered$Ethnicity))
+
+anova(betadisper(brayf, group = relab_fecal_filtered$`Study period`))
+
+anova(betadisper(brayf, group = relab_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(brayf, group = relab_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(brayf, group = relab_fecal_filtered$subject_id))
 ```
 
 Oral
 ```{r permanova_brayo}
 adonis2(brayo ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_oral, 
         permutations = 4999)
-adonis2(brayo ~ `Study period`, 
+
+adonis2(brayo ~ subject_id + `Study period`, 
         data = relab_oral, 
-        permutations = 4999, by = "margin")
-adonis2(brayob ~ `Study period`, 
-        data = relab_oral_b, 
-        permutations = 4999, by = "margin")
-adonis2(brayow ~ `Study period`, 
-        data = relab_oral_w, 
-        permutations = 4999, by = "margin")
+        permutations = 4999)
+
+anova(betadisper(brayo, group = relab_oral$Ethnicity))
+
+anova(betadisper(brayo, group = relab_oral$`Study period`))
+
+anova(betadisper(brayo, group = relab_oral$`Antibiotic use`))
+
+anova(betadisper(brayo, group = relab_oral$`Contraceptive use`))
+
+anova(betadisper(brayo, group = relab_oral$subject_id))
 ```
 
 NMDS visualization of Bray-Curtis dissimilarity with all samples.
@@ -359,34 +371,40 @@ Fecal
 ```{r permanova_jaccf}
 adonis2(jaccf ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_fecal_filtered, 
         permutations = 4999)
-adonis2(jaccf ~ `Study period`, 
+
+adonis2(jaccf ~ subject_id*`Study period`, 
         data = relab_fecal_filtered, 
-        permutations = 4999, by = "margin")
-pairwise.adonis(jaccf, 
-                factors = relab_fecal_filtered$`Study period`, 
-                perm = 4999, 
-                p.adjust.m='holm')
-adonis(jaccfb ~ `Study period`, 
-        data = relab_fecal_filtered_b, 
-        permutations = 4999, by = "margin")
-adonis(jaccfw ~ `Study period`, 
-        data = relab_fecal_filtered_w, 
-        permutations = 4999, by = "margin")
+        permutations = 4999)
+
+anova(betadisper(jaccf, group = relab_fecal_filtered$Ethnicity))
+
+anova(betadisper(jaccf, group = relab_fecal_filtered$`Study period`))
+
+anova(betadisper(jaccf, group = relab_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(jaccf, group = relab_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(jaccf, group = relab_fecal_filtered$subject_id))
 ```
 
 Oral
 ```{r permanova_jacco}
 adonis2(jacco ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_oral, 
         permutations = 4999)
-adonis2(jacco ~ `Study period`, 
+
+adonis2(jacco ~ subject_id + `Study period`, 
         data = relab_oral, 
-        permutations = 4999, by = "margin")
-adonis2(jaccob ~ `Study period`, 
-        data = relab_oral_b, 
-        permutations = 4999, by = "margin")
-adonis2(jaccow ~ `Study period`, 
-        data = relab_oral_w, 
-        permutations = 4999, by = "margin")
+        permutations = 4999)
+
+anova(betadisper(jacco, group = relab_oral$Ethnicity))
+
+anova(betadisper(jacco, group = relab_oral$`Study period`))
+
+anova(betadisper(jacco, group = relab_oral$`Antibiotic use`))
+
+anova(betadisper(jacco, group = relab_oral$`Contraceptive use`))
+
+anova(betadisper(jacco, group = relab_oral$subject_id))
 ```
 
 NMDS visualization of Jaccard similarity with all samples.

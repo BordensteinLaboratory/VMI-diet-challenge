@@ -104,6 +104,7 @@ rel_abund_tax_t = rel_abund %>%
 rel_abund_tax_fecal = rel_abund_tax_t %>% 
   filter(fecal_use == 1) 
 write.csv(rel_abund_tax_fecal, "tables/relative_abundance_values_fecal.csv")
+rel_abund_tax_fecal = read_csv("tables/relative_abundance_values_fecal.csv")
 rel_abund_tax_fecal_ethnicity = rel_abund_tax_fecal %>% 
   group_by(Ethnicity) %>% 
   summarize_if(is.numeric, mean, na.rm = T)
@@ -130,6 +131,7 @@ write_csv(rel_abund_tax_fecal_after_ethnicity, "tables/relab_fecal_after.csv")
 rel_abund_tax_oral = rel_abund_tax_t %>% 
   filter(oral_use == 1)
 write.csv(rel_abund_tax_oral, "tables/relative_abundance_values_oral.csv")
+rel_abund_tax_oral = read_csv("tables/relative_abundance_values_oral.csv")
 rel_abund_tax_oral_ethnicity = rel_abund_tax_oral %>% 
   group_by(Ethnicity) %>% 
   summarize_if(is.numeric, mean, na.rm = T)
@@ -160,42 +162,42 @@ Bray-Curtis and Jaccard distance matrices are created using vegan (v2.5-7). Matr
 
 ```{r beta_metrics, error=FALSE}
 bray_fecal = vegdist(relab_fecal_filtered[,2:9266], method = "bray")
-jacc_fecal = vegdist(relab_fecal_filtered[,2:9266], method = "jaccard")
+jacc_fecal = vegdist(relab_fecal_filtered[,2:9266], method = "jaccard", binary = T)
 bray_fecal_black = vegdist(relab_fecal_filtered_black[,2:9266], 
                            method = "bray")
 bray_fecal_white = vegdist(relab_fecal_filtered_white[,2:9266], 
                            method = "bray")
 jacc_fecal_black = vegdist(relab_fecal_filtered_black[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_fecal_white = vegdist(relab_fecal_filtered_white[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_fecal_before = vegdist(relab_fecal_filtered_before[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_fecal_during = vegdist(relab_fecal_filtered_during[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_fecal_after = vegdist(relab_fecal_filtered_after[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_fecal_before = vegdist(relab_fecal_filtered_before[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_fecal_during = vegdist(relab_fecal_filtered_during[,2:9266], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_fecal_after = vegdist(relab_fecal_filtered_after[,2:9266], 
-                           method = "jaccard") 
+                           method = "jaccard", binary = T) 
 
 bray_oral = vegdist(relab_oral_filtered[,2:8063], method = "bray")
-jacc_oral = vegdist(relab_oral_filtered[,2:8063], method = "jaccard")
+jacc_oral = vegdist(relab_oral_filtered[,2:8063], method = "jaccard", binary = T)
 bray_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "bray")
 bray_oral_white = vegdist(relab_oral_filtered_white[,2:8063], method = "bray")
-jacc_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "jaccard")
-jacc_oral_white = vegdist(relab_oral_filtered_white[,2:8063], method = "jaccard")
+jacc_oral_black = vegdist(relab_oral_filtered_black[,2:8063], method = "jaccard", binary = T)
+jacc_oral_white = vegdist(relab_oral_filtered_white[,2:8063], method = "jaccard", binary = T)
 bray_oral_before = vegdist(relab_oral_filtered_before[,2:8063], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 bray_oral_after = vegdist(relab_oral_filtered_after[,2:8063], 
-                          method = "jaccard")
+                          method = "jaccard", binary = T)
 jacc_oral_before = vegdist(relab_oral_filtered_before[,2:8063], 
-                           method = "jaccard")
+                           method = "jaccard", binary = T)
 jacc_oral_after = vegdist(relab_oral_filtered_after[,2:8063], 
-                          method = "jaccard")
+                          method = "jaccard", binary = T)
 ```
 
 Differences in the taxonomic structure of the community associated with self-reported ethnicity, subject id, and study stage is assessed using permutational multivariate analysis of variance.
@@ -207,6 +209,16 @@ adonis2(bray_fecal ~ subject_id + `Study period` + subject_id*`Study period`,
         data = relab_fecal_filtered, 
         permutations = 4999)
 adonis2(bray_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_fecal_filtered, permutations = 4999)
+
+anova(betadisper(bray_fecal, group = relab_fecal_filtered$Ethnicity))
+
+anova(betadisper(bray_fecal, group = relab_fecal_filtered$`Study period`))
+
+anova(betadisper(bray_fecal, group = relab_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_fecal, group = relab_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_fecal, group = relab_fecal_filtered$subject_id))
 
 adonis2(bray_fecal ~ Ethnicity, 
         data = relab_fecal_filtered, 
@@ -240,6 +252,16 @@ adonis2(bray_oral ~ subject_id + `Study period`,
 adonis2(bray_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_oral_filtered, permutations = 4999)
 adonis2(bray_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_oral_filtered, permutations = 4999)
 
+anova(betadisper(bray_oral, group = relab_oral_filtered$Ethnicity))
+
+anova(betadisper(bray_oral, group = relab_oral_filtered$`Study period`))
+
+anova(betadisper(bray_oral, group = relab_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(bray_oral, group = relab_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(bray_oral, group = relab_oral_filtered$subject_id))
+
 adonis2(bray_oral ~ Ethnicity, 
         data = relab_oral_filtered, 
         permutations = 4999)
@@ -268,8 +290,18 @@ Fecal
 adonis2(jacc_fecal ~ subject_id + `Study period` + subject_id*`Study period`, 
         data = relab_fecal_filtered, 
         permutations = 4999)
-adonis2(jacc_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_fecal_filtered, permutations = 4999)
 adonis2(jacc_fecal ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_fecal_filtered, permutations = 4999)
+
+anova(betadisper(jacc_fecal, group = relab_fecal_filtered$Ethnicity))
+
+anova(betadisper(jacc_fecal, group = relab_fecal_filtered$`Study period`))
+
+anova(betadisper(jacc_fecal, group = relab_fecal_filtered$`Antibiotic use`))
+
+anova(betadisper(jacc_fecal, group = relab_fecal_filtered$`Contraceptive use`))
+
+anova(betadisper(jacc_fecal, group = relab_fecal_filtered$subject_id))
+
 adonis2(jacc_fecal ~ Ethnicity, 
         data = relab_fecal_filtered, 
         permutations = 4999)
@@ -299,8 +331,18 @@ Oral
 adonis2(jacc_oral ~ subject_id + `Study period`, 
         data = relab_oral_filtered, 
         permutations = 4999)
-adonis2(bray_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use`, data = relab_oral_filtered, permutations = 4999)
 adonis2(bray_oral ~ Ethnicity + `Study period` + `Antibiotic use` + `Contraceptive use` + subject_id, data = relab_oral_filtered, permutations = 4999)
+
+anova(betadisper(jacc_oral, group = relab_oral_filtered$Ethnicity))
+
+anova(betadisper(jacc_oral, group = relab_oral_filtered$`Study period`))
+
+anova(betadisper(jacc_oral, group = relab_oral_filtered$`Antibiotic use`))
+
+anova(betadisper(jacc_oral, group = relab_oral_filtered$`Contraceptive use`))
+
+anova(betadisper(jacc_oral, group = relab_oral_filtered$subject_id))
+
 adonis2(jacc_oral ~ Ethnicity, 
         data = relab_oral_filtered, 
         permutations = 4999)
@@ -1310,23 +1352,111 @@ bray_fecal_y1_ex_no20 = vegdist(y1taxfecal_ex_no20[,9:9379], method = "bray")
 bray_oral_y1_ex_no20 = vegdist(y1taxoral_ex_no20[,9:9379], method = "bray")
 
 adonis2(bray_fecal_y1_ex ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxfecal_ex, permutations = 4999)
+
+anova(betadisper(bray_fecal_y1_ex, group = y1taxfecal_ex$Ethnicity))
+
+anova(betadisper(bray_fecal_y1_ex, group = y1taxfecal_ex$stage))
+
+anova(betadisper(bray_fecal_y1_ex, group = y1taxfecal_ex$antibiotics))
+
+anova(betadisper(bray_fecal_y1_ex, group = y1taxfecal_ex$contraception))
+
+anova(betadisper(bray_fecal_y1_ex, group = y1taxfecal_ex$Subject))
+
 adonis2(bray_oral_y1_ex ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxoral_ex, permutations = 4999)
+
+anova(betadisper(bray_oral_y1_ex, group = y1taxoral_ex$Ethnicity))
+
+anova(betadisper(bray_oral_y1_ex, group = y1taxoral_ex$stage))
+
+anova(betadisper(bray_oral_y1_ex, group = y1taxoral_ex$antibiotics))
+
+anova(betadisper(bray_oral_y1_ex, group = y1taxoral_ex$contraception))
+
+anova(betadisper(bray_oral_y1_ex, group = y1taxoral_ex$Subject))
+
 adonis2(bray_fecal_y1_ex_no20 ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxfecal_ex_no20, permutations = 4999)
+
+anova(betadisper(bray_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$Ethnicity))
+
+anova(betadisper(bray_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$stage))
+
+anova(betadisper(bray_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$antibiotics))
+
+anova(betadisper(bray_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$contraception))
+
+anova(betadisper(bray_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$Subject))
+
 adonis2(bray_oral_y1_ex_no20 ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxoral_ex_no20, permutations = 4999)
 
-jaccard_fecal_y1_ex = vegdist(y1taxfecal_ex[,9:9379], method = "jaccard")
-jaccard_oral_y1_ex = vegdist(y1taxoral_ex[,9:9379], method = "jaccard")
-jaccard_fecal_y1_ex_no20 = vegdist(y1taxfecal_ex_no20[,9:9379], method = "jaccard")
-jaccard_oral_y1_ex_no20 = vegdist(y1taxoral_ex_no20[,9:9379], method = "jaccard")
+anova(betadisper(bray_oral_y1_ex_no20, group = y1taxoral_ex_no20$Ethnicity))
+
+anova(betadisper(bray_oral_y1_ex_no20, group = y1taxoral_ex_no20$stage))
+
+anova(betadisper(bray_oral_y1_ex_no20, group = y1taxoral_ex_no20$antibiotics))
+
+anova(betadisper(bray_oral_y1_ex_no20, group = y1taxoral_ex_no20$contraception))
+
+anova(betadisper(bray_oral_y1_ex_no20, group = y1taxoral_ex_no20$Subject))
+
+jaccard_fecal_y1_ex = vegdist(y1taxfecal_ex[,9:9379], method = "jaccard", binary = T)
+jaccard_oral_y1_ex = vegdist(y1taxoral_ex[,9:9379], method = "jaccard", binary = T)
+jaccard_fecal_y1_ex_no20 = vegdist(y1taxfecal_ex_no20[,9:9379], method = "jaccard", binary = T)
+jaccard_oral_y1_ex_no20 = vegdist(y1taxoral_ex_no20[,9:9379], method = "jaccard", binary = T)
+
+adonis2(jaccard_fecal_y1_ex ~ Subject*stage, data = y1taxfecal_ex, permutations = 4999)
 
 adonis2(jaccard_fecal_y1_ex ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxfecal_ex, permutations = 4999)
+
+anova(betadisper(jaccard_fecal_y1_ex, group = y1taxfecal_ex$Ethnicity))
+
+anova(betadisper(jaccard_fecal_y1_ex, group = y1taxfecal_ex$stage))
+
+anova(betadisper(jaccard_fecal_y1_ex, group = y1taxfecal_ex$antibiotics))
+
+anova(betadisper(jaccard_fecal_y1_ex, group = y1taxfecal_ex$contraception))
+
+anova(betadisper(jaccard_fecal_y1_ex, group = y1taxfecal_ex$Subject))
+
 adonis2(jaccard_oral_y1_ex ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxoral_ex, permutations = 4999)
+
+anova(betadisper(jaccard_oral_y1_ex, group = y1taxoral_ex$Ethnicity))
+
+anova(betadisper(jaccard_oral_y1_ex, group = y1taxoral_ex$stage))
+
+anova(betadisper(jaccard_oral_y1_ex, group = y1taxoral_ex$antibiotics))
+
+anova(betadisper(jaccard_oral_y1_ex, group = y1taxoral_ex$contraception))
+
+anova(betadisper(jaccard_oral_y1_ex, group = y1taxoral_ex$Subject))
+
 adonis2(jaccard_fecal_y1_ex_no20 ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxfecal_ex_no20, permutations = 4999)
+
+anova(betadisper(jaccard_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$Ethnicity))
+
+anova(betadisper(jaccard_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$stage))
+
+anova(betadisper(jaccard_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$antibiotics))
+
+anova(betadisper(jaccard_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$contraception))
+
+anova(betadisper(jaccard_fecal_y1_ex_no20, group = y1taxfecal_ex_no20$Subject))
+
 adonis2(jaccard_oral_y1_ex_no20 ~ Ethnicity + stage + antibiotics + contraception + Subject, data = y1taxoral_ex_no20, permutations = 4999)
 
-bray_fecal_y1 = vegdist(y1taxfecal, method = "bray")
+anova(betadisper(jaccard_oral_y1_ex_no20, group = y1taxoral_ex_no20$Ethnicity))
 
-y1taxf = y1taxf %>% 
+anova(betadisper(jaccard_oral_y1_ex_no20, group = y1taxoral_ex_no20$stage))
+
+anova(betadisper(jaccard_oral_y1_ex_no20, group = y1taxoral_ex_no20$antibiotics))
+
+anova(betadisper(jaccard_oral_y1_ex_no20, group = y1taxoral_ex_no20$contraception))
+
+anova(betadisper(jaccard_oral_y1_ex_no20, group = y1taxoral_ex_no20$Subject))
+
+bray_fecal_y1 = vegdist(y1taxfecal_ex[,9:9379], method = "bray")
+
+y1taxf = y1taxfecal_ex %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -1338,7 +1468,7 @@ mds_bray_f_y1<-metaMDS(bray_fecal_y1, k=2, trymax=999)
 mds_bray_f_y1_points<-mds_bray_f_y1$points
 mds_bray_f_y1_points2<-merge(x=mds_bray_f_y1_points, y = y1taxf, 
                                   by.x = "row.names", 
-                             by.y = "sample.name")
+                             by.y = "row.names")
 
 brayfy1 <- ggplot(mds_bray_f_y1_points2, 
                   aes(x = MDS1, y = MDS2, 
@@ -1404,13 +1534,13 @@ brayfy1s <- ggplot(mds_bray_f_y1_points2,
            hjust = 1, vjust = 0)
 brayfy1s
 
-jacc_fecal_y1 = vegdist(y1taxfecal, method = "jaccard")
+jacc_fecal_y1 = vegdist(y1taxfecal_ex[,9:9379], method = "jaccard", binary = T)
 
 mds_jacc_f_y1<-metaMDS(jacc_fecal_y1, k=2, trymax=999)
 mds_jacc_f_y1_points<-mds_jacc_f_y1$points
 mds_jacc_f_y1_points2<-merge(x=mds_jacc_f_y1_points, y = y1taxf, 
                                   by.x = "row.names", 
-                             by.y = "sample.name")
+                             by.y = "row.names")
 
 jaccfy1 <- ggplot(mds_jacc_f_y1_points2, 
                   aes(x = MDS1, y = MDS2, 
@@ -1434,11 +1564,11 @@ jaccfy1 <- ggplot(mds_jacc_f_y1_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 6.1% </b>", 
+           r<sup>2</sup> = 3.9% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.134",
+           label = "Stress = 0.132",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccfy1
@@ -1465,12 +1595,12 @@ jaccfy1s <- ggplot(mds_jacc_f_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 1.0%</b>", 
+           label = "<b><i>p</i> = 0.016, 
+           r<sup>2</sup> = 1.7%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.130",
+           label = "Stress = 0.132",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccfy1s
@@ -1546,7 +1676,7 @@ brayfy2s <- ggplot(mds_bray_f_y2_points2,
            hjust = 1, vjust = 0)
 brayfy2s
 
-jacc_fecal_y2 = vegdist(relab_fecal_filtered[,2:9266], method = "jacc")
+jacc_fecal_y2 = vegdist(relab_fecal_filtered[,2:9266], method = "jaccard", binary = T)
 
 mds_jacc_f_y2<-metaMDS(jacc_fecal_y2, k=2, trymax=999)
 mds_jacc_f_y2_points<-mds_jacc_f_y2$points
@@ -1573,11 +1703,11 @@ jaccfy2 <- ggplot(mds_jacc_f_y2_points2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
            label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 5.2% </b>", 
+           r<sup>2</sup> = 3.0% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.162",
+           label = "Stress = 0.126",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccfy2
@@ -1601,12 +1731,12 @@ jaccfy2s <- ggplot(mds_jacc_f_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> = 0.005, 
-           r<sup>2</sup> = 0.09%</b>", 
+           label = "<b><i>p</i> = 0.050, 
+           r<sup>2</sup> = 1.3%</b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.162",
+           label = "Stress = 0.126",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccfy2s
@@ -1614,9 +1744,9 @@ jaccfy2s
 
 ### Cohort 1 oral taxonomy
 ```{r nmds_y1otax}
-bray_oral_y1 = vegdist(y1taxoral, method = "bray")
+bray_oral_y1 = vegdist(y1taxoral_ex[,9:9379], method = "bray")
 
-y1taxo = y1taxo %>% 
+y1taxo = y1taxoral_ex %>% 
   mutate(Ethnicity = case_when(
     Ethnicity == "African_American" ~ "Black", 
     Ethnicity == "Caucasian" ~ "White")) %>% 
@@ -1627,7 +1757,7 @@ mds_bray_o_y1<-metaMDS(bray_oral_y1, k=2, trymax=999)
 mds_bray_o_y1_points<-mds_bray_o_y1$points
 mds_bray_o_y1_points2<-merge(x=mds_bray_o_y1_points, y = y1taxo, 
                                   by.x = "row.names", 
-                             by.y = "sample.name")
+                             by.y = "row.names")
 
 brayoy1 <- ggplot(mds_bray_o_y1_points2, 
                   aes(x = MDS1, y = MDS2, 
@@ -1686,13 +1816,13 @@ brayoy1s <- ggplot(mds_bray_o_y1_points2,
            hjust = 1, vjust = 0)
 brayoy1s
 
-jacc_oral_y1 = vegdist(y1taxoral, method = "jacc")
+jacc_oral_y1 = vegdist(y1taxoral_ex[,9:9379], method = "jaccard", binary = T)
 
 mds_jacc_o_y1<-metaMDS(jacc_oral_y1, k=2, trymax=999)
 mds_jacc_o_y1_points<-mds_jacc_o_y1$points
 mds_jacc_o_y1_points2<-merge(x=mds_jacc_o_y1_points, y = y1taxo, 
                                   by.x = "row.names", 
-                             by.y = "sample.name")
+                             by.y = "row.names")
 
 jaccoy1 <- ggplot(mds_jacc_o_y1_points2, 
                   aes(x = MDS1, y = MDS2, 
@@ -1712,12 +1842,12 @@ jaccoy1 <- ggplot(mds_jacc_o_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<b><i>p</i> < 0.001, 
-           r<sup>2</sup> = 8.7% </b>", 
+           label = "<b><i>p</i> = 0.007, 
+           r<sup>2</sup> = 3.5% </b>", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.150",
+           label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccoy1
@@ -1741,12 +1871,12 @@ jaccoy1s <- ggplot(mds_jacc_o_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.394, 
-           r<sup>2</sup> = 1.1%", 
+           label = "<i>p</i> = 783, 
+           r<sup>2</sup> = 1.8%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.150",
+           label = "Stress = 0.151",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccoy1s
@@ -1755,7 +1885,7 @@ jaccoy1s
 ```{r nmds_y2otax}
 bray_oral_y2 = vegdist(relab_oral_filtered[,2:8063], method = "bray")
 
-y2taxf = relab_oral_filtered %>% 
+y2taxo = relab_oral_filtered %>% 
   dplyr::select(8064:8088)
 
 mds_bray_o_y2<-metaMDS(bray_oral_y2, k=2, trymax=999)
@@ -1821,7 +1951,7 @@ brayoy2s <- ggplot(mds_bray_o_y2_points2,
            hjust = 1, vjust = 0)
 brayoy2s
 
-jacc_oral_y2 = vegdist(relab_oral_filtered[,2:8063], method = "jacc")
+jacc_oral_y2 = vegdist(relab_oral_filtered[,2:8063], method = "jaccard", binary = T)
 
 mds_jacc_o_y2<-metaMDS(jacc_oral_y2, k=2, trymax=999)
 mds_jacc_o_y2_points<-mds_jacc_o_y2$points
@@ -1852,7 +1982,7 @@ jaccoy2 <- ggplot(mds_jacc_o_y2_points2,
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.153",
+           label = "Stress = 0.126",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccoy2
@@ -1876,12 +2006,12 @@ jaccoy2s <- ggplot(mds_jacc_o_y2_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.131, 
+           label = "<i>p</i> = 0.124, 
            r<sup>2</sup> = 1.3%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.153",
+           label = "Stress = 0.126",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccoy2s
@@ -1893,6 +2023,7 @@ vir_tax = read_tsv("Virome_files_y1/virome.txt")
 bray_fecalv_y1 = vegdist(vir_tax[,7:4432], method = "bray")
 
 adonis2(bray_fecalv_y1 ~ Ethnicity + Stage + antibiotics + contraception + Subject, data = vir_tax, permutations = 4999)
+anova(betadisper(bray_fecalv_y1, group = vir_tax$Ethnicity))
 
 y1taxfv = vir_tax %>% 
   mutate(Ethnicity = case_when(
@@ -1963,9 +2094,10 @@ brayfvy1s <- ggplot(mds_bray_fv_y1_points2,
            hjust = 1, vjust = 0)
 brayfvy1s
 
-jacc_fecalv_y1 = vegdist(vir_tax[,7:4432], method = "jacc")
+jacc_fecalv_y1 = vegdist(vir_tax[,7:4432], method = "jaccard", binary = T)
 
 adonis2(jacc_fecalv_y1 ~ Ethnicity + Stage + antibiotics + contraception + Subject, data = vir_tax, permutations = 4999)
+anova(betadisper(jacc_fecalv_y1, group = vir_tax$Ethnicity))
 
 
 mds_jacc_fv_y1<-metaMDS(jacc_fecalv_y1, k=2, trymax=999)
@@ -1998,7 +2130,7 @@ jaccfvy1 <- ggplot(mds_jacc_fv_y1_points2,
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.200",
+           label = "Stress = 0.201",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccfvy1
@@ -2022,12 +2154,12 @@ jaccfvy1s <- ggplot(mds_jacc_fv_y1_points2,
                linetype = 2,
                type = "t", level = 0.95) +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "<i>p</i> = 0.153, 
+           label = "<i>p</i> = 0.253, 
            r<sup>2</sup> = 1.3%", 
            x = Inf, y = Inf, size = 5,
            hjust = 1, vjust = 1.1)  +
   annotate(geom = "richtext", fill = NA, label.color = NA,
-           label = "Stress = 0.200",
+           label = "Stress = 0.201",
            x = Inf, y = -Inf, size = 4,
            hjust = 1, vjust = 0)
 jaccfvy1s
