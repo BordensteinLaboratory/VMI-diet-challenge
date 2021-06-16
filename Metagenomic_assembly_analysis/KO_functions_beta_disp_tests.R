@@ -9,7 +9,8 @@ set.seed(999)
 #Testing dispersion of variances (betadisp) of contig based KOs 
 
 #Cohort1 
-dir <- "/Users/goblinking/Desktop/pd/contig/"
+dir <- "contig_directory"
+
 data <- read.table(paste(dir,"ko_c1_contig.txt",sep=""), sep='\t',header=T)
 data = data %>%
   mutate(total = rowSums(data[,2:length(data)])) %>%
@@ -47,7 +48,7 @@ con_c1_fecalko_bray <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive
 
 
 #Cohort2
-dir <- "/Users/goblinking/Desktop/pd/contig/"
+
 data <- read.table(paste(dir,"ko_c2_contig.txt",sep=""), sep='\t',header=T)
 data = data %>%
   mutate(total = rowSums(data[,2:length(data)])) %>%
