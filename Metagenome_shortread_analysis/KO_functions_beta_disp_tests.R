@@ -6,10 +6,12 @@ library(gridExtra)
 library(cowplot)
 set.seed(999)
 
-#Cohort1 Short read PERMANOVA modeling of KOs 
-dir <- "/Users/goblinking/Desktop/pd/short_read/"
+#Testing dispersion of variances (betadisp) of contig based KOs 
+
+dir <- "/short_read_directory/"
 data <- read.table(paste(dir,"ko1.tsv",sep=""), sep='\t',header=T)
 meta <- read.table(paste(dir,"year1_meta.txt",sep=""), sep='\t', header=T)
+
 #Jaccard 
 distance <- "jaccard"
 run<- left_join(meta,data) %>% 
@@ -40,7 +42,6 @@ sr_c1_fecalko_bray <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive+
 #Cohort2
 
 #Jaccard 
-dir <- "/Users/goblinking/Desktop/pd/short_read/"
 data <- read.table(paste(dir,"ko2.tsv",sep=""), sep='\t',header=T)
 meta <- read.table(paste(dir,"year2_meta.txt",sep=""), sep='\t', header=T)
 distance <- "jaccard"
