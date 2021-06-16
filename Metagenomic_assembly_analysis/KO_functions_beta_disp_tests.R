@@ -6,7 +6,7 @@ library(gridExtra)
 library(cowplot)
 set.seed(999)
 
-#Contig BetaDISP & PERMANOVA modeling of KOs 
+#Testing dispersion of variances (betadisp) of contig based KOs 
 
 #Cohort1 
 dir <- "/Users/goblinking/Desktop/pd/contig/"
