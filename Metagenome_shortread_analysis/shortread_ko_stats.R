@@ -11,49 +11,81 @@ dir <- "/Users/Ko/directory/"
 data <- read.table(paste(dir,"ko_cohort1.tsv",sep=""), sep='\t',header=T)
 meta <- read.table(paste(dir,"year1_metadata.txt",sep=""), sep='\t', header=T)
 
-distance <- "jaccard"
 
 #ORAL
+distance <- "jaccard"
 run <- left_join(meta,data) %>% 
   filter(source == "oral" & UNMAPPED != "NA")
 met <- run[,1:10] 
 dat <- run[,11:length(run)]
+
 sr_c1_oralko_jac <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive+subject_id, data = met, permutations = 999, method = distance,na.rm = T)
 
 #FECAL
+distance <- "jaccard"
 run<- left_join(meta,data) %>% 
   filter(source == "fecal" & UNMAPPED != "NA")
 met <- run[,1:10] 
 dat <- run[,11:length(run)]
+
+pdisp_eth <- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_stage <- anova(betadisper(vegdist(dat, method = distance), group = met$Stage))
+pdisp_Abx <- anova(betadisper(vegdist(dat, method = distance), group = met$A))
+pdisp_hormone <- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_subject <- anova(betadisper(vegdist(dat, method = distance), group = met$Subject))
+
 sr_c1_fecalko_jac <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive+subject_id, data = met, permutations = 999, method = distance,na.rm = T)
 
-distance <- "bray"
+
 #FECAL
+distance <- "bray"
 run<- left_join(meta,data) %>% 
   filter(source == "fecal" & UNMAPPED != "NA")
 met <- run[,1:9] 
 dat <- run[,10:length(run)]
+
+pdisp_eth<- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_stage <- anova(betadisper(vegdist(dat, method = distance), group = met$Stage))
+pdisp_Abx <- anova(betadisper(vegdist(dat, method = distance), group = met$A))
+pdisp_hormone <- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_subject <- anova(betadisper(vegdist(dat, method = distance), group = met$Subject))
+
 sr_c1_fecalko_bray <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive+subject_id, data = met, permutations = 999, method = distance,na.rm = T)
+
 
 #Cohort2 Short read PERMANOVA modeling of KOs
 dir <- "/Users/Ko/directory/"
 data <- read.table(paste(dir,"ko_cohort2.tsv",sep=""), sep='\t',header=T)
 meta <- read.table(paste(dir,"year2_metadata.txt",sep=""), sep='\t', header=T)
 
-distance <- "jaccard"
 #FECAL
+distance <- "jaccard"
 run<- left_join(meta,data) %>% 
   filter(source == "fecal" & UNMAPPED != "NA")
 met <- run[,1:10] 
 dat <- run[,11:length(run)]
+
+pdisp_eth<- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_stage <- anova(betadisper(vegdist(dat, method = distance), group = met$Stage))
+pdisp_Abx <- anova(betadisper(vegdist(dat, method = distance), group = met$A))
+pdisp_hormone <- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_subject <- anova(betadisper(vegdist(dat, method = distance), group = met$Subject))
+
 sr_c2_fecalko_jac <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive+subject_id, data = met, permutations = 999, method = distance,na.rm = T)
 
-distance <- "bray"
 #FECAL
+distance <- "bray"
 run<- left_join(meta,data) %>% 
   filter(source == "fecal" & UNMAPPED != "NA")
 met <- run[,1:10] 
 dat <- run[,11:length(run)]
+
+pdisp_eth<- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_stage <- anova(betadisper(vegdist(dat, method = distance), group = met$Stage))
+pdisp_Abx <- anova(betadisper(vegdist(dat, method = distance), group = met$A))
+pdisp_hormone <- anova(betadisper(vegdist(dat, method = distance), group = met$Ethnicity))
+pdisp_subject <- anova(betadisper(vegdist(dat, method = distance), group = met$Subject))
+
 sr_c2_fecalko_bray <- adonis2(dat~ethnicity + stage + antibiotic+ contraceptive+subject_id, data = met, permutations = 999, method = distance,na.rm = T)
 
 ####NMDS
