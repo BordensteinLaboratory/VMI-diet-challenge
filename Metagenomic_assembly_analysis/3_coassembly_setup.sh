@@ -17,5 +17,5 @@ cd ${project}/1_2_human_reads
 for subject in $(cat subject.txt)
 do
 	ls ${project}/1_2_human_reads/${subject}/run1_*.R1.fastq.gz | tr "\n" "," | sed 's/,$//' > ${project}/1_2_human_reads/${subject}/R1.csv
-	ls ${project}/1_2_human_reads/$subject/run1_*.R2.fastq.gz | tr "\n" "," | sed 's/,$//' > ${project}/1_2_human_reads/${subject}/R2.csv
+	ls ${project}/1_2_human_reads/${subject}/run1_*.R2.fastq.gz | tr "\n" "," | sed 's/,$//' > ${project}/1_2_human_reads/${subject}/R2.csv
 done
