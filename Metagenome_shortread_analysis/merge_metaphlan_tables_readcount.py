@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# This utility script is adapted from the Biobakery merge_metaphlan_tables.py utility script
+# Instead of merging the relative abundances for all matched tables, it merges the estimated read counts
+
 import argparse
 import os
 import sys
