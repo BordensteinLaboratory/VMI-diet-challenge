@@ -2,7 +2,7 @@ library(vegan)
 library(BiodiversityR)
 library(MASS)
 
-m <-read.table('fecal_abudance_meta.txt', head=T, sep="\t", row.names=1, check.names = F)
+m <-read.table('abudance_meta.txt', head=T, sep="\t", row.names=1, check.names = F)
 m.matrix<-as.matrix(m[,9:ncol(m)]) #exclude metadata
 
 perm <- with(m, how(nperm = 999, blocks = day))
@@ -22,5 +22,28 @@ adonis2(m.matrix ~ m$Subject, permutations = perm, method="bray")
 
 set.seed(36)
 adonis2(m.matrix ~ m$Subject, permutations = perm, method="jaccard", binary = TRUE)
+
+
+
+### Multivariate homogeneity of groups dispersion ###
+
+# bray-curtis distance
+dis = vegdist(as.matrix(m[,9:ncol(m)]), method = "bray")
+
+anova(betadisper(dis, group = m$Ethnicity))
+anova(betadisper(dis, group = m$stage))
+anova(betadisper(dis, group = m$antibiotics))
+anova(betadisper(dis, group = m$hormonal_birth_control))
+anova(betadisper(dis, group = m$Subject))
+
+
+# binary jaccard distance
+dis = vegdist(as.matrix(m[,9:ncol(m)]), method = "jaccard", binary = T)
+
+anova(betadisper(dis, group = m$Ethnicity))
+anova(betadisper(dis, group = m$stage))
+anova(betadisper(dis, group = m$antibiotics))
+anova(betadisper(dis, group = m$hormonal_birth_control))
+anova(betadisper(dis, group = m$Subject))
 
 
