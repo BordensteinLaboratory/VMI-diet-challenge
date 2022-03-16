@@ -6,21 +6,28 @@ library(adegenet)
 library(reshape2)
 library(extrafont)
 set.seed(36)
-
-setwd("Path/to/metabolite/data")
+setwd("~/vmi_revision/mb")
 
 ###Data Cleanup####
-df<- read.csv('plasma_or_urine_metabolite_data_file.csv', stringsAsFactors = FALSE, check.names = F) 
-df <- column_to_rownames(df,"Subjects")
-dat <- df[4:length(df)]
+df<- read_tsv("species_short_year1_fecal.txt") %>% 
+  mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
+                               Ethnicity == "Caucasian" ~ "White")) 
+df$stage <- str_to_title(df$stage)
+  
+df <- column_to_rownames(df,"sample.name")
+dat <- df[10:length(df)]
 dist<-as.matrix(vegdist(dat, method='bray', na.rm = T))
-pair_list <- subset(melt(dist), value!=0)
+
+dist2 <- unique(t(apply(dist, 1, sort)))
+pair_list <- subset(melt(dist2), value!=0)
+
+
 
 #Ethnicity
-df$group <- paste(df$Time, df$Ethnicity)
+df$group <- paste(df$stage, df$Ethnicity)
 temp <- pairDistPlot(dist, df$group, within = T, data= T)
 distframe <- temp$data
-distframe <- filter(distframe, groups == "After Black-After White" | groups == "Before Black-Before White")
+distframe <- filter(distframe, groups == "Before White-During White" | groups == "Before Black-During Black")
 
 #TIME
 temp <- pairDistPlot(dist, df$Time, within = T, data= T)
@@ -86,3 +93,4 @@ plot +
 
 # Statistical Testing of mean distance of before and after (all subjects and between ethnictiies) with hypothesis that diff between means is zero  
 wilcox.test(distframe$distance~distframe$groups, alternative= "two.sided")
+
