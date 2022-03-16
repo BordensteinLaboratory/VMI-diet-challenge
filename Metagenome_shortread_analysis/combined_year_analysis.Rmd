@@ -647,3 +647,86 @@ plot = plot_grid(col1, col2, col3, col4, nrow = 1, ncol = 5,
 plot
 dev.off()
 ```
+
+## Mock community analysis
+
+### Filter samples
+
+Filter samples to select mock community samples only. Select bacteria known to be present in the mock communities.
+
+```{r filter_mock}
+relab_mock_all = relab1_all_t %>% left_join(metadata2_all, by = "file") %>% 
+  filter(mock == 1) 
+relab_mock_filtered_all = relab_mock_all %>% 
+  mutate(total = rowSums(relab_mock_all[,2:600])) %>% 
+  filter(total > 0) %>% 
+  select_if(~ !is.numeric(.) || sum(.) != 0) %>% 
+  dplyr::select(!(3:6)) %>% 
+  dplyr::select(!c(Faecalibacterium_prausnitzii, Prevotella_copri))
+```
+
+### Calculating beta diversity metrics
+
+Vegan (2.5-7) is used to calculate the Bray-Curtis dissimilarity and Jaccard similarity metrics.
+```{r beta_metrics_mock, error=FALSE}
+brayf_mock = vegdist(relab_mock_filtered_all[,2:8], method = "bray")
+jaccf_mock = vegdist(relab_mock_filtered_all[,2:8], method = "jaccard", binary = T)
+```
+
+### PERMANOVAs - All Samples
+Differences in the taxonomic structure of the mock communities between cohorts is assessed using permutational multivariate analysis of variance.
+
+```{r permanova_mock}
+adonis2(brayf_mock ~ Cohort, data = relab_mock_filtered_all, permutations = 4999)
+
+anova(betadisper(brayf_mock, group = relab_mock_filtered_all$Cohort))
+
+adonis2(jaccf_mock ~ Cohort, data = relab_mock_filtered_all, permutations = 4999)
+
+anova(betadisper(jaccf_mock, group = relab_mock_filtered_all$Cohort))
+```
+
+### Taxonomic abundance
+
+Wilcoxon Rank Sum tests (base R) were used to assess if cohort is associated with the abundance of individual species identified present in the mock communities. 
+
+```{r taxa_models_mock}
+bacillus = wilcox.test(Bacillus_intestinalis ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F)
+bacillus
+ 
+escherichia = wilcox.test(Escherichia_coli ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F) 
+escherichia
+
+lactobacillus = wilcox.test(Lactobacillus_fermentum ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F)
+lactobacillus
+
+listeria = wilcox.test(Listeria_monocytogenes ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F)
+listeria
+
+pseudomonas = wilcox.test(Pseudomonas_aeruginosa_group ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F)
+pseudomonas
+
+saccharomyces = wilcox.test(Saccharomyces_cerevisiae ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F)
+saccharomyces
+
+salmonella = wilcox.test(Salmonella_enterica ~ Cohort, 
+                  data = relab_mock_filtered_all,
+                  paired = F, exact = F)
+salmonella
+
+cohort_abund = relab_mock_filtered_all %>% 
+  group_by(Cohort) %>% 
+  summarize(across(2:8, ~ mean(.x)))
+```
