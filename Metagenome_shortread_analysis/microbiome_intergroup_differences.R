@@ -16,14 +16,13 @@ results_gut <- NULL
 
 
 for (i in datafiles){
-for (e in ethnicities){
 if(str_detect(i, "oral") == TRUE){
 df<- read_tsv(i) %>% 
   mutate(Ethnicity = case_when(Ethnicity == "African_American" ~ "Black", 
                                Ethnicity == "Caucasian" ~ "White")) 
 df$stage <- str_to_title(df$stage)
 df$group <- paste(df$stage, df$Ethnicity)
-df2 <- df %>% select(group, everything()) %>% filter(Ethnicity == e)
+df2 <- df %>% select(group, everything()) 
 data.env <- df2[1:10]
 data <- df2[11:length(df)]
 tmod <- vegdist(data, method='bray', na.rm = T) %>% 
@@ -34,7 +33,7 @@ pstat <- permustats(pmod)
 # densityplot(pstat, scales = list(x = list(relation = "free")))
 # qqmath(pstat, scales = list(relation = "free"))
 x <- pmod$pairwise$observed
-update <- c(i,e,x)
+update <- c(i,x)
 results_oral<- rbind(results_oral,update)
 }
 else{
@@ -43,7 +42,7 @@ df<- read_tsv(i) %>%
                                Ethnicity == "Caucasian" ~ "White")) 
 df$stage <- str_to_title(df$stage)
 df$group <- paste(df$stage, df$Ethnicity)
-df2 <- df %>% select(group, everything()) %>% filter(Ethnicity == e)
+df2 <- df %>% select(group, everything())
 data.env <- df2[1:10]
 data <- df2[11:length(df)]
 tmod <- vegdist(data, method='bray', na.rm = T) %>% 
@@ -54,27 +53,25 @@ pstat <- permustats(pmod)
 # densityplot(pstat, scales = list(x = list(relation = "free")))
 # qqmath(pstat, scales = list(relation = "free"))
 x <- pmod$pairwise$observed
-update <- c(i,e,x)
+update <- c(i,x)
 results_gut<- rbind(results_gut,update)
 }
 }
-}
+
 
 #FDR adjusted p-values 
-t_gut <- results_gut %>% as.data.frame() %>% select(3:length(.))
+t_gut <- results_gut %>% as.data.frame() %>% select(2:length(.))
 x=NULL
-for ( i in c(1:4)){
+for ( i in c(1:3)){
   x[[i]] <- t_gut[i,] %>% 
     t() %>% 
     p.adjust(., method="fdr")
 }
-
-final_result <- unlist(x, recursive = TRUE, use.names = TRUE) %>% as.data.frame() %>% 
-  t()
+adjusted_result <- do.call("rbind",x)
 
 t_oral <- results_oral%>% as.data.frame() %>% select(3:length(.))
 x=NULL
-for ( i in c(1:4)){
+for ( i in c(1:2)){
   x[[i]] <- t_oral[i,] %>% 
     t() %>% 
     p.adjust(., method="fdr")
